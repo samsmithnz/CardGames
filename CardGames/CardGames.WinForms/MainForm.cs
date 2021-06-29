@@ -14,26 +14,40 @@ namespace CardGames.WinForms
 {
     public partial class MainForm : Form
     {
-        Deck Deck = null;
+        private Deck Deck = null;
         public MainForm()
         {
             InitializeComponent();
             Deck = new Deck();
             Deck.Shuffle();
             LoadCards(Deck);
+
+            //button1.Text = new Rune(0x1F0DE).ToString();
+            //this.button1.Font = new System.Drawing.Font("Segoe UI", 100F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            //this.button1.Location = new System.Drawing.Point(1089, 358);
+            //this.button1.Name = "button1";
+            //this.button1.Size = new System.Drawing.Size(300, 400);
+            //this.button1.TabIndex = 3;
+            //this.button1.Text = "0";
+            //this.button1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            //this.button1.UseVisualStyleBackColor = true;
         }
 
         private void LoadCards(Deck deck)
         {
+            int xOffset = 0;
+            int yOffset = 0;
             foreach (Card card in deck.Cards)
             {
                 CardUserControl cardUserControl = new CardUserControl
                 {
-                    Size = new System.Drawing.Size(300, 400),
-                    Location = new Point(40, 40)
+                    Size = new System.Drawing.Size(200, 300),
+                    Location = new Point(0 + xOffset, 0+ yOffset)
                 };
-                this.Controls.Add(cardUserControl);
+                DeckPanel.Controls.Add(cardUserControl);
                 cardUserControl.SetupCard(card);
+                //xOffset += 4;
+                //yOffset += 4;
             }
             statusStrip.Items[0].Text = "Total cards: " + deck.Cards.Count.ToString();
         }

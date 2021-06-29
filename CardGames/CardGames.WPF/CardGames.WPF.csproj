@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="cardback1.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CardGames.Core\CardGames.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="cardback1.jpg" />
+  </ItemGroup>
+
+</Project>

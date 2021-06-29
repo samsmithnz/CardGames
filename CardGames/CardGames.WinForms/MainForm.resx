@@ -57,4 +57,43 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <metadata name="DeckPanel.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel1.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel4.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel2.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel3.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel5.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel6.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel7.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel8.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel9.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel10.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel11.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
+  <metadata name="panel12.Locked" type="System.Boolean, System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e">
+    <value>True</value>
+  </metadata>
 </root>

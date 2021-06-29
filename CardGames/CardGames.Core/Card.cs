@@ -26,10 +26,10 @@ namespace CardGames.Core
 
         public enum CardSuite
         {
-            Hearts,
-            Clubs,
-            Diamonds,
-            Spades
+            Heart,
+            Club,
+            Diamond,
+            Spade
         }
 
         //TODO: Add jokers
