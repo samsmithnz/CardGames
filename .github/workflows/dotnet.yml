@@ -46,7 +46,7 @@ jobs:
         name: nugetToolPackage
         path: src/DotNetCensus/nupkg
     - name: .NET publish
-      run: dotnet publish CardGames/CardGames.Core/CardGames.Core.csproj -c ${{ env.configuration }} -p:Version='${{ steps.gitversion.outputs.SemVer }}'
+      run: dotnet publish CardGames/CardGames.Core/CardGames.Core.csproj -c Release -p:Version='${{ steps.gitversion.outputs.SemVer }}'
     - name: Upload package back to GitHub
       uses: actions/upload-artifact@v3
       with:
