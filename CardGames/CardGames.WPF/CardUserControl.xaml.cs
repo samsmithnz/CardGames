@@ -31,7 +31,7 @@ namespace CardGames.WPF
             Card = card;
             //lblTopLeftNumber.Text = card.Number.ToString().Replace("_", "");
             //lblSuite.Text = card.Suite.ToString();
-            string path = @"C:\Users\samsmit\source\repos\CardGames\CardGames\CardGames.WPF\Images\";
+            string path = @"C:\Users\samsm\source\repos\CardGames\CardGames\CardGames.WPF\Images\";
             string fileName = "1920px-Playing_card_" + card.Suite.ToString().ToLower() + "_" + card.Number.ToString().Replace("_", "") + ".svg.png";
             PicCard.Source = new BitmapImage(new Uri(path + fileName));
             PicBack.Source = new BitmapImage(new Uri(path + "cardback1.jpg"));

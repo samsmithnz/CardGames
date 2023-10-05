@@ -30,74 +30,74 @@ namespace CardGames.WinForms
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CardUserControl));
-            this.lblTopLeftNumber = new System.Windows.Forms.Label();
-            this.lblSuite = new System.Windows.Forms.Label();
-            this.picBack = new System.Windows.Forms.PictureBox();
-            this.picCard = new System.Windows.Forms.PictureBox();
-            ((System.ComponentModel.ISupportInitialize)(this.picBack)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picCard)).BeginInit();
-            this.SuspendLayout();
+            lblTopLeftNumber = new System.Windows.Forms.Label();
+            lblSuite = new System.Windows.Forms.Label();
+            picBack = new System.Windows.Forms.PictureBox();
+            picCard = new System.Windows.Forms.PictureBox();
+            ((System.ComponentModel.ISupportInitialize)picBack).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)picCard).BeginInit();
+            SuspendLayout();
             // 
             // lblTopLeftNumber
             // 
-            this.lblTopLeftNumber.AutoSize = true;
-            this.lblTopLeftNumber.BackColor = System.Drawing.Color.Transparent;
-            this.lblTopLeftNumber.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblTopLeftNumber.Location = new System.Drawing.Point(11, 15);
-            this.lblTopLeftNumber.Name = "lblTopLeftNumber";
-            this.lblTopLeftNumber.Size = new System.Drawing.Size(40, 42);
-            this.lblTopLeftNumber.TabIndex = 5;
-            this.lblTopLeftNumber.Text = "9";
+            lblTopLeftNumber.AutoSize = true;
+            lblTopLeftNumber.BackColor = System.Drawing.Color.Transparent;
+            lblTopLeftNumber.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lblTopLeftNumber.Location = new System.Drawing.Point(11, 15);
+            lblTopLeftNumber.Name = "lblTopLeftNumber";
+            lblTopLeftNumber.Size = new System.Drawing.Size(40, 42);
+            lblTopLeftNumber.TabIndex = 5;
+            lblTopLeftNumber.Text = "9";
             // 
             // lblSuite
             // 
-            this.lblSuite.BackColor = System.Drawing.Color.Transparent;
-            this.lblSuite.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
-            this.lblSuite.Location = new System.Drawing.Point(57, 15);
-            this.lblSuite.Name = "lblSuite";
-            this.lblSuite.Size = new System.Drawing.Size(243, 42);
-            this.lblSuite.TabIndex = 7;
-            this.lblSuite.Text = "Hearts";
-            this.lblSuite.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            lblSuite.BackColor = System.Drawing.Color.Transparent;
+            lblSuite.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.875F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point);
+            lblSuite.Location = new System.Drawing.Point(57, 15);
+            lblSuite.Name = "lblSuite";
+            lblSuite.Size = new System.Drawing.Size(243, 42);
+            lblSuite.TabIndex = 7;
+            lblSuite.Text = "Hearts";
+            lblSuite.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // picBack
             // 
-            this.picBack.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("picBack.BackgroundImage")));
-            this.picBack.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.picBack.Location = new System.Drawing.Point(0, 0);
-            this.picBack.Name = "picBack";
-            this.picBack.Size = new System.Drawing.Size(300, 400);
-            this.picBack.TabIndex = 8;
-            this.picBack.TabStop = false;
-            this.picBack.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PicBack_MouseDown_1);
+            picBack.BackgroundImage = (System.Drawing.Image)resources.GetObject("picBack.BackgroundImage");
+            picBack.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            picBack.Location = new System.Drawing.Point(0, 0);
+            picBack.Name = "picBack";
+            picBack.Size = new System.Drawing.Size(300, 400);
+            picBack.TabIndex = 8;
+            picBack.TabStop = false;
+            picBack.MouseDown += PicBack_MouseDown_1;
             // 
             // picCard
             // 
-            this.picCard.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
-            this.picCard.Location = new System.Drawing.Point(0, 0);
-            this.picCard.Name = "picCard";
-            this.picCard.Size = new System.Drawing.Size(300, 400);
-            this.picCard.TabIndex = 9;
-            this.picCard.TabStop = false;
-            this.picCard.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PicCard_MouseDown);
+            picCard.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            picCard.Location = new System.Drawing.Point(0, 0);
+            picCard.Name = "picCard";
+            picCard.Size = new System.Drawing.Size(300, 400);
+            picCard.TabIndex = 9;
+            picCard.TabStop = false;
+            picCard.MouseDown += PicCard_MouseDown;
             // 
             // CardUserControl
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.White;
-            this.Controls.Add(this.picBack);
-            this.Controls.Add(this.picCard);
-            this.Controls.Add(this.lblSuite);
-            this.Controls.Add(this.lblTopLeftNumber);
-            this.Name = "CardUserControl";
-            this.Size = new System.Drawing.Size(300, 400);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.CardUserControl_MouseDown);
-            ((System.ComponentModel.ISupportInitialize)(this.picBack)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.picCard)).EndInit();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
+            AutoScaleDimensions = new System.Drawing.SizeF(13F, 32F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            BackColor = System.Drawing.Color.White;
+            Controls.Add(picBack);
+            Controls.Add(picCard);
+            Controls.Add(lblSuite);
+            Controls.Add(lblTopLeftNumber);
+            Name = "CardUserControl";
+            Size = new System.Drawing.Size(300, 400);
+            MouseDown += CardUserControl_MouseDown;
+            ((System.ComponentModel.ISupportInitialize)picBack).EndInit();
+            ((System.ComponentModel.ISupportInitialize)picCard).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
