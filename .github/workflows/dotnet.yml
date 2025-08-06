@@ -38,7 +38,7 @@ jobs:
       uses: coverallsapp/github-action@v2.3.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        path-to-lcov: ${{ github.workspace }}\TestResults\coverage.info       
+        path-to-lcov: ${{ github.workspace }}\TestResults\coverage.info    
     - name: .NET publish
       run: dotnet publish src\CardGames.Core\CardGames.Core.csproj -c Release -p:Version='${{ steps.gitversion.outputs.MajorMinorPatch }}'
     - name: Upload package back to GitHub
