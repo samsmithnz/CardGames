@@ -1,3 +1,4 @@
+using System.Linq;
 using CardGames.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -98,6 +99,35 @@ namespace CardGames.Tests
                 Assert.IsTrue(originalDeck.Cards.Contains(shuffledCard), 
                     $"Card {shuffledCard.Number} of {shuffledCard.Suite} was added during shuffle");
             }
+        }
+
+        [TestMethod]
+        public void CreateDeckHasAllSuitsAndRanksTest()
+        {
+            //Arrange
+            Deck deck = new Deck();
+
+            //Act & Assert
+            // Verify we have exactly 13 cards of each suit
+            Assert.AreEqual(13, deck.Cards.Count(c => c.Suite == Card.CardSuite.Heart));
+            Assert.AreEqual(13, deck.Cards.Count(c => c.Suite == Card.CardSuite.Club));
+            Assert.AreEqual(13, deck.Cards.Count(c => c.Suite == Card.CardSuite.Diamond));
+            Assert.AreEqual(13, deck.Cards.Count(c => c.Suite == Card.CardSuite.Spade));
+
+            // Verify we have exactly 4 cards of each rank
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber.A));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._2));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._3));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._4));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._5));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._6));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._7));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._8));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._9));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber._10));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber.J));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber.Q));
+            Assert.AreEqual(4, deck.Cards.Count(c => c.Number == Card.CardNumber.K));
         }
     }
 }
