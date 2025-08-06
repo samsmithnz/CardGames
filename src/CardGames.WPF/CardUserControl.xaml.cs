@@ -21,9 +21,25 @@ namespace CardGames.WPF
     {
         public Card Card { get; set; }
 
+        /// <summary>
+        /// Event raised when a card is being dragged from this control
+        /// </summary>
+        public event EventHandler<Card> CardDragStarted;
+
+        /// <summary>
+        /// Event raised when a card is dropped onto this control
+        /// </summary>
+        public event EventHandler<CardDropEventArgs> CardDropped;
+
+        /// <summary>
+        /// Event raised to validate if a drop is allowed
+        /// </summary>
+        public event EventHandler<ValidateDropEventArgs> ValidateDrop;
+
         public CardUserControl()
         {
             InitializeComponent();
+            AllowDrop = true;
         }
 
         public void SetupCard(Card card)
@@ -74,12 +90,117 @@ namespace CardGames.WPF
 
         private void PicBack_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            //    this.DoDragDrop(sender, DragDropEffects.Move);
+            if (e.LeftButton == MouseButtonState.Pressed && Card != null)
+            {
+                // Raise the drag started event
+                CardDragStarted?.Invoke(this, Card);
+                
+                // Initiate drag and drop operation
+                DragDrop.DoDragDrop(this, Card, DragDropEffects.Move);
+            }
         }
+
         private void PicBack_Click(object sender, RoutedEventArgs e)
         {
             IsFaceUp = !IsFaceUp;
-            //    this.DoDragDrop(sender, DragDropEffects.Move);
+        }
+
+        private void CardUserControl_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(Card)))
+            {
+                Card draggedCard = (Card)e.Data.GetData(typeof(Card));
+                
+                // Request validation from parent
+                ValidateDropEventArgs args = new ValidateDropEventArgs(draggedCard, this);
+                ValidateDrop?.Invoke(this, args);
+                
+                // Highlight based on validation result
+                if (args.IsValid)
+                {
+                    this.Background = new SolidColorBrush(Colors.LightGreen);
+                    e.Effects = DragDropEffects.Move;
+                }
+                else
+                {
+                    this.Background = new SolidColorBrush(Colors.LightCoral);
+                    e.Effects = DragDropEffects.None;
+                }
+                
+                this.Opacity = 0.8;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+
+        private void CardUserControl_DragOver(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(typeof(Card)))
+            {
+                e.Effects = DragDropEffects.Move;
+            }
+            else
+            {
+                e.Effects = DragDropEffects.None;
+            }
+            e.Handled = true;
+        }
+
+        private void CardUserControl_DragLeave(object sender, DragEventArgs e)
+        {
+            // Remove highlight when drag leaves the control
+            this.Background = new SolidColorBrush(Colors.Transparent);
+            this.Opacity = 1.0;
+            e.Handled = true;
+        }
+
+        private void CardUserControl_Drop(object sender, DragEventArgs e)
+        {
+            // Remove highlight after drop
+            this.Background = new SolidColorBrush(Colors.Transparent);
+            this.Opacity = 1.0;
+            
+            if (e.Data.GetDataPresent(typeof(Card)))
+            {
+                Card droppedCard = (Card)e.Data.GetData(typeof(Card));
+                CardDropped?.Invoke(this, new CardDropEventArgs(droppedCard, this));
+            }
+            e.Handled = true;
+        }
+    }
+
+    /// <summary>
+    /// Event arguments for card drop operations
+    /// </summary>
+    public class CardDropEventArgs : EventArgs
+    {
+        public Card DroppedCard { get; }
+        public CardUserControl TargetControl { get; }
+
+        public CardDropEventArgs(Card droppedCard, CardUserControl targetControl)
+        {
+            DroppedCard = droppedCard;
+            TargetControl = targetControl;
+        }
+    }
+
+    /// <summary>
+    /// Event arguments for validating drop operations
+    /// </summary>
+    public class ValidateDropEventArgs : EventArgs
+    {
+        public Card DraggedCard { get; }
+        public CardUserControl TargetControl { get; }
+        public bool IsValid { get; set; }
+
+        public ValidateDropEventArgs(Card draggedCard, CardUserControl targetControl)
+        {
+            DraggedCard = draggedCard;
+            TargetControl = targetControl;
+            IsValid = false; // Default to invalid
         }
     }
 }
