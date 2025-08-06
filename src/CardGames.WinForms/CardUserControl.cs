@@ -25,7 +25,32 @@ namespace CardGames.WinForms
             lblTopLeftNumber.Text = card.Number.ToString().Replace("_", "");
             lblSuite.Text = card.Suite.ToString();
             string fileName = "1920px-Playing_card_" + card.Suite.ToString().ToLower() + "_" + card.Number.ToString().Replace("_", "") + ".svg.png";
-            picCard.BackgroundImage = Image.FromFile(@"C:\Users\samsm\source\repos\CardGames\src\CardGames.WinForms\Images\" + fileName);
+            
+            string imagePath = System.IO.Path.Combine(Application.StartupPath, "Images", fileName);
+            string backImagePath = System.IO.Path.Combine(Application.StartupPath, "Images", "cardback1.jpg");
+            
+            try
+            {
+                if (System.IO.File.Exists(imagePath))
+                {
+                    picCard.BackgroundImage = Image.FromFile(imagePath);
+                }
+                else
+                {
+                    // Try relative path from project directory
+                    string projectPath = System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(System.IO.Path.GetDirectoryName(Application.StartupPath)));
+                    imagePath = System.IO.Path.Combine(projectPath, "CardGames.WinForms", "Images", fileName);
+                    if (System.IO.File.Exists(imagePath))
+                    {
+                        picCard.BackgroundImage = Image.FromFile(imagePath);
+                    }
+                }
+            }
+            catch (System.Exception)
+            {
+                // Handle image loading errors gracefully
+            }
+            
             CardVisible = false;
         }
 
