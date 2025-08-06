@@ -25,7 +25,7 @@ namespace CardGames.WinForms
             lblTopLeftNumber.Text = card.Number.ToString().Replace("_", "");
             lblSuite.Text = card.Suite.ToString();
             string fileName = "1920px-Playing_card_" + card.Suite.ToString().ToLower() + "_" + card.Number.ToString().Replace("_", "") + ".svg.png";
-            picCard.BackgroundImage = Image.FromFile(@"C:\Users\samsm\source\repos\CardGames\CardGames\CardGames.WinForms\Images\" + fileName);
+            picCard.BackgroundImage = Image.FromFile(@"C:\Users\samsm\source\repos\CardGames\src\CardGames.WinForms\Images\" + fileName);
             CardVisible = false;
         }
 
