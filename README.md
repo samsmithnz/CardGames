@@ -1,1 +1,81 @@
 # CardGames
+
+[![CI/CD](https://github.com/samsmithnz/CardGames/actions/workflows/dotnet.yml/badge.svg)](https://github.com/samsmithnz/CardGames/actions/workflows/dotnet.yml)
+[![Coverage Status](https://coveralls.io/repos/github/samsmithnz/CardGames/badge.svg?branch=main)](https://coveralls.io/github/samsmithnz/CardGames?branch=main)
+![Current Release](https://img.shields.io/github/release/samsmithnz/CardGames/all.svg)
+
+A C# implementation of classic card games featuring clean architecture, testable logic, and a desktop user interface. This project demonstrates modern software development practices while providing entertaining and familiar card game experiences.
+
+## Project Overview
+
+CardGames is designed to implement various classic card games (such as Solitaire, Poker, and others) with a focus on:
+
+- **Clean Architecture**: Core game logic is completely separated from UI code
+- **Testable Design**: All game logic is unit tested and easily verifiable
+- **Modular Structure**: Each game variant is modular and reusable
+- **Desktop Experience**: Rich WPF-based user interface for Windows
+
+## Project Structure
+
+The solution is organized into three main projects:
+
+- **CardGames.Core** (.NET Standard 2.1): Contains the core game logic, card definitions, deck management, and game rules
+- **CardGames.Tests** (.NET 8.0): Comprehensive unit tests for all core functionality
+- **CardGames.WPF** (.NET 8.0 Windows): Windows Presentation Foundation UI using MVVM pattern
+
+## Current Features
+
+- **Card System**: Complete playing card implementation with suits and numbers
+- **Deck Management**: Standard 52-card deck with shuffling capabilities
+- **Solitaire Rules**: Basic framework for Solitaire game variants
+- **Unit Testing**: Test coverage for core functionality
+
+## Getting Started
+
+### Prerequisites
+
+- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- Windows (for WPF UI components)
+
+### Building the Project
+
+```bash
+# Clone the repository
+git clone https://github.com/samsmithnz/CardGames.git
+cd CardGames
+
+# Build the solution
+dotnet build src/CardGames.sln
+
+# Run tests
+dotnet test src/CardGames.Tests/CardGames.Tests.csproj
+```
+
+### Running the Application
+
+```bash
+# Run the WPF application (Windows only)
+dotnet run --project src/CardGames.WPF/CardGames.WPF.csproj
+```
+
+## Technology Stack
+
+- **Language**: C# 
+- **Framework**: .NET 8.0 / .NET Standard 2.1
+- **UI Framework**: Windows Presentation Foundation (WPF)
+- **Testing**: MSTest
+- **CI/CD**: GitHub Actions
+- **Architecture Pattern**: MVVM (for UI), Clean Architecture (overall)
+
+## Contributing
+
+Contributions are welcome! Please ensure that:
+
+- All new public methods and classes include XML documentation
+- Unit tests are written for new functionality
+- Code follows the established C# conventions
+- UI logic remains separate from core game logic
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
