@@ -5,9 +5,51 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CardGames.WPF"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Solitaire - Card Games WPF" Height="800" Width="1200" 
+        AllowDrop="True" DragEnter="MainWindow_DragEnter" Drop="MainWindow_Drop">
     <Grid>
-        <local:CardUserControl x:Name="Card1" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="200" Height="300"/>
+        <!-- Foundation piles (Ace piles) - Top right -->
+        <WrapPanel Name="FoundationPilesContainer" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,20,20,0">
+            <Border Name="FoundationPile1" Width="120" Height="160" Margin="5" BorderBrush="Gray" BorderThickness="2" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"
+                    Background="LightGray"/>
+            <Border Name="FoundationPile2" Width="120" Height="160" Margin="5" BorderBrush="Gray" BorderThickness="2" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"
+                    Background="LightGray"/>
+            <Border Name="FoundationPile3" Width="120" Height="160" Margin="5" BorderBrush="Gray" BorderThickness="2" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"
+                    Background="LightGray"/>
+            <Border Name="FoundationPile4" Width="120" Height="160" Margin="5" BorderBrush="Gray" BorderThickness="2" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"
+                    Background="LightGray"/>
+        </WrapPanel>
 
+        <!-- Playing area piles - Center and bottom -->
+        <WrapPanel Name="PlayingAreasContainer" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20,200,20,20">
+            <Canvas Name="PlayingArea1" Width="120" Height="400" Margin="5" Background="LightGreen" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"/>
+            <Canvas Name="PlayingArea2" Width="120" Height="400" Margin="5" Background="LightGreen" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"/>
+            <Canvas Name="PlayingArea3" Width="120" Height="400" Margin="5" Background="LightGreen" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"/>
+            <Canvas Name="PlayingArea4" Width="120" Height="400" Margin="5" Background="LightGreen" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"/>
+            <Canvas Name="PlayingArea5" Width="120" Height="400" Margin="5" Background="LightGreen" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"/>
+            <Canvas Name="PlayingArea6" Width="120" Height="400" Margin="5" Background="LightGreen" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"/>
+            <Canvas Name="PlayingArea7" Width="120" Height="400" Margin="5" Background="LightGreen" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"/>
+        </WrapPanel>
+
+        <!-- Deck and discard pile - Top left -->
+        <StackPanel Name="DeckContainer" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="20,20,0,0" Orientation="Horizontal">
+            <Border Name="DeckPile" Width="120" Height="160" Margin="5" BorderBrush="Gray" BorderThickness="2" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"
+                    Background="DarkGray"/>
+            <Border Name="DiscardPile" Width="120" Height="160" Margin="5" BorderBrush="Gray" BorderThickness="2" 
+                    AllowDrop="True" DragEnter="Panel_DragEnter" Drop="Panel_Drop" DragOver="Panel_DragOver"
+                    Background="LightYellow"/>
+        </StackPanel>
     </Grid>
 </Window>
