@@ -1,7 +1,6 @@
 ﻿using CardGames.Core;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,49 +29,12 @@ namespace CardGames.WPF
         public void SetupCard(Card card)
         {
             Card = card;
+            //lblTopLeftNumber.Text = card.Number.ToString().Replace("_", "");
+            //lblSuite.Text = card.Suite.ToString();
+            string path = @"C:\Users\samsm\source\repos\CardGames\src\CardGames.WPF\Images\";
             string fileName = "1920px-Playing_card_" + card.Suite.ToString().ToLower() + "_" + card.Number.ToString().Replace("_", "") + ".svg.png";
-            
-            // Use relative path from the application directory
-            string basePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images");
-            string fullPath = Path.Combine(basePath, fileName);
-            string backCardPath = Path.Combine(basePath, "cardback1.jpg");
-            
-            try
-            {
-                if (File.Exists(fullPath))
-                {
-                    PicCard.Source = new BitmapImage(new Uri(fullPath, UriKind.Absolute));
-                }
-                else
-                {
-                    // Fallback to relative URI
-                    PicCard.Source = new BitmapImage(new Uri($"pack://application:,,,/Images/{fileName}"));
-                }
-                
-                if (File.Exists(backCardPath))
-                {
-                    PicBack.Source = new BitmapImage(new Uri(backCardPath, UriKind.Absolute));
-                }
-                else
-                {
-                    // Fallback to relative URI
-                    PicBack.Source = new BitmapImage(new Uri("pack://application:,,,/cardback1.jpg"));
-                }
-            }
-            catch
-            {
-                // Use fallback images if file operations fail
-                try
-                {
-                    PicCard.Source = new BitmapImage(new Uri($"pack://application:,,,/Images/{fileName}"));
-                    PicBack.Source = new BitmapImage(new Uri("pack://application:,,,/cardback1.jpg"));
-                }
-                catch
-                {
-                    // If all else fails, leave default images
-                }
-            }
-            
+            PicCard.Source = new BitmapImage(new Uri(path + fileName));
+            PicBack.Source = new BitmapImage(new Uri(path + "cardback1.jpg"));
             IsFaceUp = false;
         }
 
@@ -86,6 +48,8 @@ namespace CardGames.WPF
             set
             {
                 _cardVisible = value;
+                //lblTopLeftNumber.Visible = _cardVisible;
+                //lblSuite.Visible = _cardVisible;
                 if (_cardVisible == true)
                 {
                     PicBack.Visibility = Visibility.Hidden;
@@ -101,19 +65,12 @@ namespace CardGames.WPF
 
         private void PicBack_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed)
-            {
-                // Enable drag and drop
-                this.Cursor = Cursors.Hand;
-                DragDrop.DoDragDrop(this, this, DragDropEffects.Move);
-                this.Cursor = Cursors.Arrow;
-            }
+            //    this.DoDragDrop(sender, DragDropEffects.Move);
         }
-
         private void PicBack_Click(object sender, RoutedEventArgs e)
         {
-            // Toggle card face up/down on click
             IsFaceUp = !IsFaceUp;
+            //    this.DoDragDrop(sender, DragDropEffects.Move);
         }
     }
 }
