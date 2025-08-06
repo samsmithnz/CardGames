@@ -33,19 +33,19 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: .NET test
-      run: dotnet test src/CardGames.Tests/CardGames.Tests.csproj -c Debug -e:CollectCoverage=true -e:CoverletOutput=${{ github.workspace }}/TestResults/ -e:CoverletOutputFormat=lcov # using -e parameter to set an environment variable until the /p parameter is fixed: https://github.com/coverlet-coverage/coverlet/issues/1391
+      run: dotnet test src\CardGames.Tests\CardGames.Tests.csproj -c Debug -e:CollectCoverage=true -e:CoverletOutput=${{ github.workspace }}\TestResults\ -e:CoverletOutputFormat=lcov # using -e parameter to set an environment variable until the /p parameter is fixed: https://github.com/coverlet-coverage/coverlet/issues/1391
     - name: Coveralls
       uses: coverallsapp/github-action@v2.3.0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ${{ github.workspace }}\TestResults\coverage.info       
     - name: .NET publish
-      run: dotnet publish src/CardGames.Core/CardGames.Core.csproj -c Release -p:Version='${{ steps.gitversion.outputs.MajorMinorPatch }}'
+      run: dotnet publish src\CardGames.Core\CardGames.Core.csproj -c Release -p:Version='${{ steps.gitversion.outputs.MajorMinorPatch }}'
     - name: Upload package back to GitHub
       uses: actions/upload-artifact@v4
       with:
         name: drop
-        path: src/CardGames.Core/bin/Release/netstandard2.1
+        path: src\CardGames.Core\bin\Release\netstandard2.1
 
   Release:
     runs-on: ubuntu-latest
