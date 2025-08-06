@@ -18,37 +18,32 @@ jobs:
       with:
         fetch-depth: 0
     - name: Setup GitVersion
-      uses: gittools/actions/gitversion/setup@v0.10.2
+      uses: gittools/actions/gitversion/setup@v1.1.1
       with:
         versionSpec: 5.x
     - name: Determine Version
       id: gitversion
-      uses: gittools/actions/gitversion/execute@v0.10.2
+      uses: gittools/actions/gitversion/execute@v1.1.1
     - name: Display GitVersion outputs
       run: |
         echo "Version: ${{ steps.gitversion.outputs.SemVer }}"
         echo "CommitsSinceVersionSource: ${{ steps.gitversion.outputs.CommitsSinceVersionSource }}"
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.0.x
     - name: .NET test
-      run: dotnet test CardGames/CardGames.Tests/CardGames.Tests.csproj -c Debug -e:CollectCoverage=true -e:CoverletOutput=${{ github.workspace }}/TestResults/ -e:CoverletOutputFormat=lcov # using -e parameter to set an environment variable until the /p parameter is fixed: https://github.com/coverlet-coverage/coverlet/issues/1391
+      run: dotnet test src/CardGames.Tests/CardGames.Tests.csproj -c Debug -e:CollectCoverage=true -e:CoverletOutput=${{ github.workspace }}/TestResults/ -e:CoverletOutputFormat=lcov # using -e parameter to set an environment variable until the /p parameter is fixed: https://github.com/coverlet-coverage/coverlet/issues/1391
     - name: Coveralls
-      uses: coverallsapp/github-action@master
+      uses: coverallsapp/github-action@v2.3.0
       if: false
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         path-to-lcov: ${{ github.workspace }}/TestResults/coverage.info    
-    - name: Upload package back to GitHub
-      uses: actions/upload-artifact@v3
-      with:
-        name: nugetToolPackage
-        path: src/DotNetCensus/nupkg
     - name: .NET publish
-      run: dotnet publish CardGames/CardGames.Core/CardGames.Core.csproj -c Release -p:Version='${{ steps.gitversion.outputs.SemVer }}'
+      run: dotnet publish src/CardGames.Core/CardGames.Core.csproj -c Release -p:Version='${{ steps.gitversion.outputs.SemVer }}'
     - name: Upload package back to GitHub
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: drop
-        path: CardGames/CardGames.Core/bin/${{ env.configuration }}/netstandard2.1
+        path: src/CardGames.Core/bin/Release/netstandard2.1
