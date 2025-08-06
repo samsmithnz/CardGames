@@ -31,10 +31,19 @@ namespace CardGames.WPF
             Card = card;
             //lblTopLeftNumber.Text = card.Number.ToString().Replace("_", "");
             //lblSuite.Text = card.Suite.ToString();
-            string path = @"C:\Users\samsm\source\repos\CardGames\src\CardGames.WPF\Images\";
             string fileName = "1920px-Playing_card_" + card.Suite.ToString().ToLower() + "_" + card.Number.ToString().Replace("_", "") + ".svg.png";
-            PicCard.Source = new BitmapImage(new Uri(path + fileName));
-            PicBack.Source = new BitmapImage(new Uri(path + "cardback1.jpg"));
+            
+            try
+            {
+                PicCard.Source = new BitmapImage(new Uri($"Images/{fileName}", UriKind.Relative));
+                PicBack.Source = new BitmapImage(new Uri("Images/cardback1.jpg", UriKind.Relative));
+            }
+            catch (System.Exception)
+            {
+                // Fallback to pack URI if relative path doesn't work
+                PicCard.Source = new BitmapImage(new Uri($"pack://application:,,,/Images/{fileName}"));
+                PicBack.Source = new BitmapImage(new Uri("pack://application:,,,/Images/cardback1.jpg"));
+            }
             IsFaceUp = false;
         }
 

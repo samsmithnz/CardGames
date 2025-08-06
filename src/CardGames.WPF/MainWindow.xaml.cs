@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CardGames.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,10 +21,44 @@ namespace CardGames.WPF
     /// </summary>
     public partial class MainWindow : Window
     {
+        private Deck deck;
+
         public MainWindow()
         {
             InitializeComponent();
-            Card1.SetupCard(new Core.Card { Number = Core.Card.CardNumber._9, Suite = Core.Card.CardSuite.Heart });
+            deck = new Deck();
+            deck.Shuffle();
+            LoadCards();
+        }
+
+        private void LoadCards()
+        {
+            // Display first few cards as an example
+            Card1.SetupCard(deck.Cards[0]);
+            Card2.SetupCard(deck.Cards[1]);
+            Card3.SetupCard(deck.Cards[2]);
+            Card4.SetupCard(deck.Cards[3]);
+            
+            // Show some cards face up
+            Card1.IsFaceUp = true;
+            Card3.IsFaceUp = true;
+            
+            StatusLabel.Content = $"Total cards: {deck.Cards.Count}";
+        }
+
+        private void FlipButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Toggle all cards
+            Card1.IsFaceUp = !Card1.IsFaceUp;
+            Card2.IsFaceUp = !Card2.IsFaceUp;
+            Card3.IsFaceUp = !Card3.IsFaceUp;
+            Card4.IsFaceUp = !Card4.IsFaceUp;
+        }
+
+        private void ShuffleButton_Click(object sender, RoutedEventArgs e)
+        {
+            deck.Shuffle();
+            LoadCards();
         }
     }
 }
