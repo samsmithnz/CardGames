@@ -37,12 +37,68 @@ namespace CardGames.Tests
 
             //Assert
             Assert.AreEqual(52, deck.Cards.Count);
-            //Look at first item
-            Card card1 = new Card { Suite = Card.CardSuite.Heart, Number = Card.CardNumber.A };
-            Assert.AreNotEqual(card1, deck.Cards[0]);
-            //Look at last item
-            Card cardn = new Card { Suite = Card.CardSuite.Spade, Number = Card.CardNumber.K };
-            Assert.AreNotEqual(cardn, deck.Cards[^1]);
+            // Note: We can't assert that specific cards are not in their original positions
+            // because there's a small chance they could randomly end up there after shuffling.
+            // The other tests (ShuffleChangesCardOrderTest and ShufflePreservesAllCardsTest) 
+            // provide better verification of the shuffle functionality.
+        }
+
+        [TestMethod]
+        public void ShuffleChangesCardOrderTest()
+        {
+            //Arrange
+            Deck deck1 = new Deck();
+            Deck deck2 = new Deck();
+
+            //Act
+            deck2.Shuffle();
+
+            //Assert - After shuffling, the order should be different
+            Assert.AreEqual(52, deck1.Cards.Count);
+            Assert.AreEqual(52, deck2.Cards.Count);
+            
+            // Check that at least some cards are in different positions
+            int differentPositions = 0;
+            for (int i = 0; i < deck1.Cards.Count; i++)
+            {
+                if (!deck1.Cards[i].Equals(deck2.Cards[i]))
+                {
+                    differentPositions++;
+                }
+            }
+            
+            // Statistical test: expect that most cards are in different positions after shuffle
+            // Using a conservative threshold - at least 20 cards should be in different positions
+            Assert.IsTrue(differentPositions >= 20, $"Only {differentPositions} cards changed position, expected at least 20");
+        }
+
+        [TestMethod]
+        public void ShufflePreservesAllCardsTest()
+        {
+            //Arrange
+            Deck originalDeck = new Deck();
+            Deck shuffledDeck = new Deck();
+
+            //Act
+            shuffledDeck.Shuffle();
+
+            //Assert - All original cards should still be present after shuffle
+            Assert.AreEqual(52, originalDeck.Cards.Count);
+            Assert.AreEqual(52, shuffledDeck.Cards.Count);
+            
+            // Every card from original deck should exist in shuffled deck
+            foreach (Card originalCard in originalDeck.Cards)
+            {
+                Assert.IsTrue(shuffledDeck.Cards.Contains(originalCard), 
+                    $"Card {originalCard.Number} of {originalCard.Suite} is missing after shuffle");
+            }
+            
+            // Every card from shuffled deck should exist in original deck
+            foreach (Card shuffledCard in shuffledDeck.Cards)
+            {
+                Assert.IsTrue(originalDeck.Cards.Contains(shuffledCard), 
+                    $"Card {shuffledCard.Number} of {shuffledCard.Suite} was added during shuffle");
+            }
         }
 
         [TestMethod]
