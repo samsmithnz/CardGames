@@ -7,10 +7,10 @@
              mc:Ignorable="d" Width="200" Height="300">
     <Grid Width="200" Height="300">
         <Button Click="PicBack_Click" MouseDown="PicBack_MouseDown" HorizontalAlignment="Left" Height="300" VerticalAlignment="Top" Width="200">
-            <Image x:Name="PicBack" Source="/cardback1.jpg" Width="200" Height="300" />
+            <Image x:Name="PicBack" Source="Images/cardback1.jpg" Width="200" Height="300" />
         </Button>
         <Button Click="PicBack_Click" MouseDown="PicBack_MouseDown" HorizontalAlignment="Left" Height="300" VerticalAlignment="Top" Width="200">
-            <Image x:Name="PicCard" Source="/cardback1.jpg" />
+            <Image x:Name="PicCard" Source="Images/cardback1.jpg" />
         </Button>
     </Grid>
 </UserControl>

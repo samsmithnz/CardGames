@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <None Remove="cardback1.jpg" />
+    <None Remove="Images\**\*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="cardback1.jpg" />
+    <Resource Include="Images\**\*" />
   </ItemGroup>
 
 </Project>
