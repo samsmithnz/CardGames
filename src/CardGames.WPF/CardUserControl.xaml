@@ -4,7 +4,12 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:CardGames.WPF"
-             mc:Ignorable="d" Width="200" Height="300">
+             mc:Ignorable="d" Width="200" Height="300"
+             AllowDrop="True"
+             DragEnter="CardUserControl_DragEnter"
+             DragOver="CardUserControl_DragOver"
+             DragLeave="CardUserControl_DragLeave"
+             Drop="CardUserControl_Drop">
     <Grid Width="200" Height="300">
         <Button Click="PicBack_Click" MouseDown="PicBack_MouseDown" HorizontalAlignment="Left" Height="300" VerticalAlignment="Top" Width="200">
             <Image x:Name="PicBack" Source="Images/cardback1.jpg" Width="200" Height="300" />
