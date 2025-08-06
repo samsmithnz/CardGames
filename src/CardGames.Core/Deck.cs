@@ -4,11 +4,21 @@ using System.Text;
 
 namespace CardGames.Core
 {
+    /// <summary>
+    /// Represents a deck of playing cards
+    /// </summary>
     public class Deck
     {
-        public List<Card> Cards;
+        /// <summary>
+        /// Gets the list of cards in the deck
+        /// </summary>
+        public List<Card> Cards { get; private set; }
+        
         private Random rng = new Random();
 
+        /// <summary>
+        /// Initializes a new instance of the Deck class with a standard 52-card deck
+        /// </summary>
         public Deck()
         {
             //Add all of the cards to the deck
@@ -24,10 +34,11 @@ namespace CardGames.Core
                     });
                 }
             }
-
-
         }
 
+        /// <summary>
+        /// Shuffles the cards in the deck using the Fisher-Yates shuffle algorithm
+        /// </summary>
         public void Shuffle()
         {
             int n = Cards.Count;
