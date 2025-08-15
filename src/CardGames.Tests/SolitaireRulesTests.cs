@@ -305,6 +305,24 @@ namespace CardGames.Tests
         }
 
         [TestMethod]
+        public void FoundationPiles_ShouldStartEmpty()
+        {
+            //Arrange
+            SolitaireRules rules = new SolitaireRules();
+            Deck deck = new Deck();
+
+            //Act - Deal cards (this is what happens when a game starts)
+            rules.DealCards(deck);
+
+            //Assert - Foundation piles should be empty after dealing
+            for (int i = 0; i < 4; i++)
+            {
+                Assert.AreEqual(0, rules.FoundationPiles[i].Count, 
+                    $"Foundation pile {i} should be empty when game starts");
+            }
+        }
+      
+        [TestMethod]
         public void WastePileTransitionFromCardsToEmpty_ShouldBeClearState()
         {
             //Arrange

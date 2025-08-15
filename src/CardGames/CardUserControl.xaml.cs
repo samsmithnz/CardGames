@@ -19,7 +19,17 @@ namespace CardGames
     /// </summary>
     public partial class CardUserControl : UserControl
     {
-        public Card Card { get; set; }
+        private Card _card;
+        public Card Card 
+        { 
+            get { return _card; }
+            set 
+            { 
+                _card = value;
+                // Update visibility when card changes
+                UpdateVisibility();
+            }
+        }
 
         /// <summary>
         /// Event raised when a card is being dragged from this control
@@ -83,18 +93,30 @@ namespace CardGames
             set
             {
                 _cardVisible = value;
-                //lblTopLeftNumber.Visible = _cardVisible;
-                //lblSuite.Visible = _cardVisible;
-                if (_cardVisible == true)
-                {
-                    PicBack.Visibility = Visibility.Hidden;
-                    PicCard.Visibility = Visibility.Visible;
-                }
-                else
-                {
-                    PicBack.Visibility = Visibility.Visible;
-                    PicCard.Visibility = Visibility.Hidden;
-                }
+                UpdateVisibility();
+            }
+        }
+
+        /// <summary>
+        /// Updates the visibility of card images based on current state
+        /// </summary>
+        private void UpdateVisibility()
+        {
+            // If there's no card, hide both images
+            if (Card == null)
+            {
+                PicBack.Visibility = Visibility.Hidden;
+                PicCard.Visibility = Visibility.Hidden;
+            }
+            else if (_cardVisible == true)
+            {
+                PicBack.Visibility = Visibility.Hidden;
+                PicCard.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                PicBack.Visibility = Visibility.Visible;
+                PicCard.Visibility = Visibility.Hidden;
             }
         }
 
