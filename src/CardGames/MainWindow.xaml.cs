@@ -57,7 +57,9 @@ namespace CardGames
             };
             
             SetupCardEvents();
-            StatusLabel.Content = "Click 'New Game' to start playing Solitaire";
+            
+            // Automatically start a new game when the program starts
+            StartNewGame();
         }
 
         
@@ -71,6 +73,8 @@ namespace CardGames
             StockPile.CardDropped += OnCardDropped;
             StockPile.ValidateDrop += OnValidateDrop;
             StockPile.CardClicked += OnCardClicked;
+            StockPile.IsStockPile = true;
+            StockPile.StockPileClicked += OnStockPileClicked;
             
             WastePile.CardDragStarted += OnCardDragStarted;
             WastePile.CardDropped += OnCardDropped;
@@ -102,7 +106,7 @@ namespace CardGames
         /// <summary>
         /// Start a new game of Solitaire
         /// </summary>
-        private void NewGameButton_Click(object sender, RoutedEventArgs e)
+        private void StartNewGame()
         {
             // Clear all existing cards from UI
             ClearAllCards();
@@ -116,11 +120,35 @@ namespace CardGames
             
             StatusLabel.Content = "New game started! Drag cards to move them.";
         }
+
+        /// <summary>
+        /// Start a new game of Solitaire (button click handler)
+        /// </summary>
+        private void NewGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartNewGame();
+        }
         
         /// <summary>
         /// Draw a card from stock to waste pile
         /// </summary>
         private void DrawCardButton_Click(object sender, RoutedEventArgs e)
+        {
+            DrawCardFromStock();
+        }
+
+        /// <summary>
+        /// Handle stock pile clicks to draw cards
+        /// </summary>
+        private void OnStockPileClicked(object sender, EventArgs e)
+        {
+            DrawCardFromStock();
+        }
+
+        /// <summary>
+        /// Draw a card from stock to waste pile - shared logic
+        /// </summary>
+        private void DrawCardFromStock()
         {
             if (solitaireRules.StockPile.Count > 0)
             {
@@ -272,6 +300,7 @@ namespace CardGames
             else
             {
                 WastePile.Card = null;
+                WastePile.IsFaceUp = false;
             }
         }
 

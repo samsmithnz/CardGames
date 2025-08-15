@@ -41,6 +41,16 @@ namespace CardGames
         /// </summary>
         public event EventHandler<Card> CardClicked;
 
+        /// <summary>
+        /// Event raised when the stock pile card is clicked to draw a card
+        /// </summary>
+        public event EventHandler<EventArgs> StockPileClicked;
+
+        /// <summary>
+        /// Indicates if this card control represents the stock pile
+        /// </summary>
+        public bool IsStockPile { get; set; }
+
         public CardUserControl()
         {
             InitializeComponent();
@@ -115,6 +125,17 @@ namespace CardGames
             else
             {
                 // Flip face-down cards
+                IsFaceUp = !IsFaceUp;
+            }
+        }
+            if (IsStockPile)
+            {
+                // For stock pile, raise the stock pile clicked event instead of flipping
+                StockPileClicked?.Invoke(this, EventArgs.Empty);
+            }
+            else
+            {
+                // For other cards, flip face up/down as before
                 IsFaceUp = !IsFaceUp;
             }
         }
