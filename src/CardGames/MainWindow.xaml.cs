@@ -184,16 +184,6 @@ namespace CardGames
         }
         
         /// <summary>
-        /// Reset the current game
-        /// </summary>
-        private void ResetButton_Click(object sender, RoutedEventArgs e)
-        {
-            ClearAllCards();
-            StatusLabel.Content = "Game reset. Click 'New Game' to start playing.";
-        }
-
-        
-        /// <summary>
         /// Clear all cards from the UI
         /// </summary>
         private void ClearAllCards()
