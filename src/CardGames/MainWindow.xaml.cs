@@ -233,6 +233,11 @@ namespace CardGames
                     foundationControls[i].SetupCard(topCard);
                     foundationControls[i].IsFaceUp = true;
                 }
+                else
+                {
+                    // Foundation pile is empty - clear the control
+                    foundationControls[i].Card = null;
+                }
             }
             
             // Display tableau columns
