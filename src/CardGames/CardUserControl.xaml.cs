@@ -133,20 +133,43 @@ namespace CardGames
             }
         }
 
+        private bool _isDragging = false;
+        private Point _startPoint;
+
         private void PicBack_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.LeftButton == MouseButtonState.Pressed && Card != null)
             {
-                // Raise the drag started event
-                CardDragStarted?.Invoke(this, Card);
+                _startPoint = e.GetPosition(this);
+                _isDragging = false;
+            }
+        }
+
+        private void PicBack_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (e.LeftButton == MouseButtonState.Pressed && Card != null && !_isDragging)
+            {
+                Point currentPosition = e.GetPosition(this);
+                Vector diff = _startPoint - currentPosition;
                 
-                // Initiate drag and drop operation
-                DragDrop.DoDragDrop(this, Card, DragDropEffects.Move);
+                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
+                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    _isDragging = true;
+                    // Raise the drag started event
+                    CardDragStarted?.Invoke(this, Card);
+                    
+                    // Initiate drag and drop operation
+                    DragDrop.DoDragDrop(this, Card, DragDropEffects.Move);
+                }
             }
         }
 
         private void PicBack_Click(object sender, RoutedEventArgs e)
         {
+            // Reset dragging state
+            _isDragging = false;
+            
             if (IsStockPile)
             {
                 // For stock pile, raise the stock pile clicked event instead of flipping
