@@ -106,11 +106,20 @@ namespace CardGames
         /// </summary>
         private void UpdateVisibility()
         {
-            // If there's no card, hide both images
+            // If there's no card, hide both images unless this is a stock pile
             if (Card == null)
             {
-                PicBack.Visibility = Visibility.Hidden;
-                PicCard.Visibility = Visibility.Hidden;
+                if (IsStockPile)
+                {
+                    // Stock pile should remain clickable even when empty to allow reset
+                    PicBack.Visibility = Visibility.Visible;
+                    PicCard.Visibility = Visibility.Hidden;
+                }
+                else
+                {
+                    PicBack.Visibility = Visibility.Hidden;
+                    PicCard.Visibility = Visibility.Hidden;
+                }
             }
             else if (_cardVisible == true)
             {
