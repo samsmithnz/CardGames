@@ -437,9 +437,26 @@ namespace CardGames
             else
             {
                 // Move to existing card (should stack)
-                targetControl.SetupCard(card);
-                targetControl.IsFaceUp = true;
-                sourceControl.Card = null;
+                // First check if this is actually a tableau move that wasn't caught above
+                int targetColumnIndexForExistingCard = GetTableauColumnIndex(targetControl);
+                if (targetColumnIndexForExistingCard >= 0)
+                {
+                    // This is a tableau move - handle it properly
+                    RemoveCardFromSource(sourceControl, card);
+                    
+                    // Add to target tableau column
+                    solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Add(card);
+                    
+                    // Refresh the display for the target column to show proper stacking
+                    RefreshTableauColumn(targetColumnIndexForExistingCard);
+                }
+                else
+                {
+                    // Non-tableau move - replace the card (for waste pile, etc.)
+                    targetControl.SetupCard(card);
+                    targetControl.IsFaceUp = true;
+                    sourceControl.Card = null;
+                }
             }
         }
 
