@@ -47,6 +47,11 @@ namespace CardGames
         public event EventHandler<ValidateDropEventArgs> ValidateDrop;
 
         /// <summary>
+        /// Event raised when a card is clicked (not dragged)
+        /// </summary>
+        public event EventHandler<Card> CardClicked;
+
+        /// <summary>
         /// Event raised when the stock pile card is clicked to draw a card
         /// </summary>
         public event EventHandler<EventArgs> StockPileClicked;
@@ -139,9 +144,14 @@ namespace CardGames
                 // For stock pile, raise the stock pile clicked event instead of flipping
                 StockPileClicked?.Invoke(this, EventArgs.Empty);
             }
+            else if (Card != null && IsFaceUp)
+            {
+                // Raise card clicked event for face-up cards
+                CardClicked?.Invoke(this, Card);
+            }
             else
             {
-                // For other cards, flip face up/down as before
+                // Flip face-down cards
                 IsFaceUp = !IsFaceUp;
             }
         }
