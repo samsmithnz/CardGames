@@ -138,6 +138,14 @@ namespace CardGames
 
         private void PicBack_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            // Handle double-click using ClickCount since Image does not expose MouseDoubleClick in XAML
+            if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 2)
+            {
+                PicBack_DoubleClick(sender, e);
+                e.Handled = true;
+                return;
+            }
+
             if (e.LeftButton == MouseButtonState.Pressed && Card != null)
             {
                 _startPoint = e.GetPosition(this);
