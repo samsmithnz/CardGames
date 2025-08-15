@@ -85,7 +85,6 @@ namespace CardGames
                 PicCard.Source = new BitmapImage(new Uri($"pack://application:,,,/Images/{fileName}"));
                 PicBack.Source = new BitmapImage(new Uri("pack://application:,,,/Images/cardback1.jpg"));
             }
-            IsFaceUp = false;
         }
 
         private bool _cardVisible;
