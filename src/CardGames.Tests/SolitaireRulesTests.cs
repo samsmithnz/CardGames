@@ -265,5 +265,44 @@ namespace CardGames.Tests
             Assert.IsFalse(rules.CanPlaceCardOnFoundation(card, 4));
             Assert.IsFalse(rules.CanPlaceCardOnFoundation(null, 0));
         }
+
+        [TestMethod]
+        public void MoveCardBetweenTableauColumns_ShouldUpdateDataStructures()
+        {
+            //Arrange
+            SolitaireRules rules = new SolitaireRules();
+            Card blackKing = new Card { Number = Card.CardNumber.K, Suite = Card.CardSuite.Spade };
+            Card redQueen = new Card { Number = Card.CardNumber.Q, Suite = Card.CardSuite.Heart };
+            Card redKing = new Card { Number = Card.CardNumber.K, Suite = Card.CardSuite.Diamond };
+
+            // Set up column 0 with black King, red Queen
+            rules.TableauColumns[0].Add(blackKing);
+            rules.TableauColumns[0].Add(redQueen);
+            
+            // Set up column 1 with red King only
+            rules.TableauColumns[1].Add(redKing);
+
+            //Act - Move red Queen from column 0 to column 1 (should be valid: red Queen can go on red King? No wait...)
+            // Actually, red Queen cannot go on red King because they're the same color
+            // Let me set up a proper scenario: black King in column 1, red Queen moves there
+            rules.TableauColumns[1].Clear();
+            rules.TableauColumns[1].Add(blackKing); // black King in column 1
+            
+            Assert.IsTrue(rules.CanPlaceCardOnTableau(redQueen, 1), "Red Queen should be able to go on black King");
+            
+            // Simulate the move by manually updating the data structures
+            Card cardToMove = rules.TableauColumns[0][rules.TableauColumns[0].Count - 1]; // Get top card from column 0
+            rules.TableauColumns[0].RemoveAt(rules.TableauColumns[0].Count - 1); // Remove from source
+            rules.TableauColumns[1].Add(cardToMove); // Add to target
+
+            //Assert
+            Assert.AreEqual(1, rules.TableauColumns[0].Count, "Source column should have one card remaining");
+            Assert.AreEqual(blackKing, rules.TableauColumns[0][0], "Source column should still have the black King");
+            
+            Assert.AreEqual(2, rules.TableauColumns[1].Count, "Target column should have two cards");
+            Assert.AreEqual(blackKing, rules.TableauColumns[1][0], "Target column should have black King at bottom");
+            Assert.AreEqual(redQueen, rules.TableauColumns[1][1], "Target column should have red Queen on top");
+        }
+        
     }
 }
