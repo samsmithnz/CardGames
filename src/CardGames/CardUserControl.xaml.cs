@@ -165,7 +165,7 @@ namespace CardGames
             }
         }
 
-        private void PicBack_Click(object sender, RoutedEventArgs e)
+        private void PicBack_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             // Reset dragging state
             _isDragging = false;
