@@ -16,6 +16,12 @@ updates:
     labels:
       - "dependencies"
       - "nuget"
+    groups:
+      test-dependencies:
+        patterns:
+          - "MSTest.*"
+          - "Microsoft.NET.Test.Sdk"
+          - "coverlet.*"
 
   # Monitor GitHub Actions in workflow files
   - package-ecosystem: "github-actions"
@@ -33,3 +39,7 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    groups:
+      actions:
+        patterns:
+          - "*"
