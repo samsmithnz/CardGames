@@ -70,6 +70,8 @@ namespace CardGames
             StockPile.CardDragStarted += OnCardDragStarted;
             StockPile.CardDropped += OnCardDropped;
             StockPile.ValidateDrop += OnValidateDrop;
+            StockPile.IsStockPile = true;
+            StockPile.StockPileClicked += OnStockPileClicked;
             
             WastePile.CardDragStarted += OnCardDragStarted;
             WastePile.CardDropped += OnCardDropped;
@@ -117,6 +119,22 @@ namespace CardGames
         /// Draw a card from stock to waste pile
         /// </summary>
         private void DrawCardButton_Click(object sender, RoutedEventArgs e)
+        {
+            DrawCardFromStock();
+        }
+
+        /// <summary>
+        /// Handle stock pile clicks to draw cards
+        /// </summary>
+        private void OnStockPileClicked(object sender, EventArgs e)
+        {
+            DrawCardFromStock();
+        }
+
+        /// <summary>
+        /// Draw a card from stock to waste pile - shared logic
+        /// </summary>
+        private void DrawCardFromStock()
         {
             if (solitaireRules.StockPile.Count > 0)
             {
