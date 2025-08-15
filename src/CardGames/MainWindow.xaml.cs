@@ -57,7 +57,9 @@ namespace CardGames
             };
             
             SetupCardEvents();
-            StatusLabel.Content = "Click 'New Game' to start playing Solitaire";
+            
+            // Automatically start a new game when the program starts
+            StartNewGame();
         }
 
         
@@ -98,7 +100,7 @@ namespace CardGames
         /// <summary>
         /// Start a new game of Solitaire
         /// </summary>
-        private void NewGameButton_Click(object sender, RoutedEventArgs e)
+        private void StartNewGame()
         {
             // Clear all existing cards from UI
             ClearAllCards();
@@ -111,6 +113,14 @@ namespace CardGames
             DisplayGame();
             
             StatusLabel.Content = "New game started! Drag cards to move them.";
+        }
+
+        /// <summary>
+        /// Start a new game of Solitaire (button click handler)
+        /// </summary>
+        private void NewGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            StartNewGame();
         }
         
         /// <summary>
