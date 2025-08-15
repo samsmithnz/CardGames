@@ -129,7 +129,6 @@
         <!-- Control Buttons -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
             <Button x:Name="NewGameButton" Content="New Game" Click="NewGameButton_Click" Margin="5" Padding="10,5"/>
-            <Button x:Name="ResetButton" Content="Reset" Click="ResetButton_Click" Margin="5" Padding="10,5"/>
         </StackPanel>
         
         <!-- Status Bar -->
