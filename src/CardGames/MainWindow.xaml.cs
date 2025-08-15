@@ -70,10 +70,12 @@ namespace CardGames
             StockPile.CardDragStarted += OnCardDragStarted;
             StockPile.CardDropped += OnCardDropped;
             StockPile.ValidateDrop += OnValidateDrop;
+            StockPile.CardClicked += OnCardClicked;
             
             WastePile.CardDragStarted += OnCardDragStarted;
             WastePile.CardDropped += OnCardDropped;
             WastePile.ValidateDrop += OnValidateDrop;
+            WastePile.CardClicked += OnCardClicked;
             
             // Setup events for foundation piles
             foreach (CardUserControl foundation in foundationControls)
@@ -81,6 +83,7 @@ namespace CardGames
                 foundation.CardDragStarted += OnCardDragStarted;
                 foundation.CardDropped += OnCardDropped;
                 foundation.ValidateDrop += OnValidateDrop;
+                foundation.CardClicked += OnCardClicked;
             }
             
             // Setup events for tableau controls
@@ -91,6 +94,7 @@ namespace CardGames
                     card.CardDragStarted += OnCardDragStarted;
                     card.CardDropped += OnCardDropped;
                     card.ValidateDrop += OnValidateDrop;
+                    card.CardClicked += OnCardClicked;
                 }
             }
         }
@@ -323,6 +327,42 @@ namespace CardGames
             }
             
             dragSourceControl = null;
+        }
+
+        /// <summary>
+        /// Handle when a card is clicked to check for auto-move to foundation
+        /// </summary>
+        private void OnCardClicked(object sender, Card clickedCard)
+        {
+            CardUserControl sourceControl = sender as CardUserControl;
+            if (sourceControl == null || clickedCard == null)
+            {
+                return;
+            }
+
+            // Try to find an available foundation pile for this card
+            int foundationIndex = solitaireRules.FindAvailableFoundationPile(clickedCard);
+            if (foundationIndex >= 0)
+            {
+                // Found a valid foundation pile - execute the move
+                CardUserControl targetFoundation = foundationControls[foundationIndex];
+                ExecuteMove(sourceControl, targetFoundation, clickedCard);
+                
+                // Check for game win condition
+                if (solitaireRules.IsGameWon())
+                {
+                    StatusLabel.Content = "Congratulations! You won the game!";
+                }
+                else
+                {
+                    StatusLabel.Content = $"Auto-moved {clickedCard.Number} of {clickedCard.Suite}s to foundation";
+                }
+            }
+            else
+            {
+                // No valid foundation move found
+                StatusLabel.Content = $"{clickedCard.Number} of {clickedCard.Suite}s cannot be moved to foundation";
+            }
         }
 
         /// <summary>

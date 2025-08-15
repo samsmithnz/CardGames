@@ -303,6 +303,37 @@ namespace CardGames.Tests
             Assert.AreEqual(blackKing, rules.TableauColumns[1][0], "Target column should have black King at bottom");
             Assert.AreEqual(redQueen, rules.TableauColumns[1][1], "Target column should have red Queen on top");
         }
+
+        [TestMethod]
+        public void FindAvailableFoundationPileTest()
+        {
+            //Arrange
+            SolitaireRules rules = new SolitaireRules();
+            Card aceHearts = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Heart };
+            Card twoHearts = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Heart };
+            Card aceSpades = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Spade };
+            Card twoSpades = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Spade };
+
+            //Act & Assert - Aces can be placed on empty foundations
+            Assert.AreEqual(0, rules.FindAvailableFoundationPile(aceHearts));
+            Assert.AreEqual(0, rules.FindAvailableFoundationPile(aceSpades));
+
+            // Place Ace of Hearts on foundation 0
+            rules.FoundationPiles[0].Add(aceHearts);
+
+            //Act & Assert - Two of Hearts can go on foundation 0, but Ace of Spades should go to foundation 1
+            Assert.AreEqual(0, rules.FindAvailableFoundationPile(twoHearts));
+            Assert.AreEqual(1, rules.FindAvailableFoundationPile(aceSpades));
+
+            // Two of Spades cannot be placed anywhere yet
+            Assert.AreEqual(-1, rules.FindAvailableFoundationPile(twoSpades));
+
+            // Place Ace of Spades on foundation 1
+            rules.FoundationPiles[1].Add(aceSpades);
+
+            //Act & Assert - Now Two of Spades can go on foundation 1
+            Assert.AreEqual(1, rules.FindAvailableFoundationPile(twoSpades));
+        }
         
     }
 }

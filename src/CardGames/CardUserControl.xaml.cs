@@ -36,6 +36,11 @@ namespace CardGames
         /// </summary>
         public event EventHandler<ValidateDropEventArgs> ValidateDrop;
 
+        /// <summary>
+        /// Event raised when a card is clicked (not dragged)
+        /// </summary>
+        public event EventHandler<Card> CardClicked;
+
         public CardUserControl()
         {
             InitializeComponent();
@@ -102,7 +107,16 @@ namespace CardGames
 
         private void PicBack_Click(object sender, RoutedEventArgs e)
         {
-            IsFaceUp = !IsFaceUp;
+            if (Card != null && IsFaceUp)
+            {
+                // Raise card clicked event for face-up cards
+                CardClicked?.Invoke(this, Card);
+            }
+            else
+            {
+                // Flip face-down cards
+                IsFaceUp = !IsFaceUp;
+            }
         }
 
         private void CardUserControl_DragEnter(object sender, DragEventArgs e)

@@ -166,6 +166,23 @@ namespace CardGames.Core
         }
 
         /// <summary>
+        /// Finds the first foundation pile where a card can be placed
+        /// </summary>
+        /// <param name="card">The card to place</param>
+        /// <returns>The foundation index (0-3) if a valid placement is found, -1 otherwise</returns>
+        public int FindAvailableFoundationPile(Card card)
+        {
+            for (int foundationIndex = 0; foundationIndex < 4; foundationIndex++)
+            {
+                if (CanPlaceCardOnFoundation(card, foundationIndex))
+                {
+                    return foundationIndex;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
         /// Draws a card from the stock pile to the waste pile
         /// </summary>
         /// <returns>True if a card was drawn, false if stock pile is empty</returns>
