@@ -117,7 +117,12 @@ namespace CardGames
 
         private void PicBack_Click(object sender, RoutedEventArgs e)
         {
-            if (Card != null && IsFaceUp)
+            if (IsStockPile)
+            {
+                // For stock pile, raise the stock pile clicked event instead of flipping
+                StockPileClicked?.Invoke(this, EventArgs.Empty);
+            }
+            else if (Card != null && IsFaceUp)
             {
                 // Raise card clicked event for face-up cards
                 CardClicked?.Invoke(this, Card);
@@ -125,17 +130,6 @@ namespace CardGames
             else
             {
                 // Flip face-down cards
-                IsFaceUp = !IsFaceUp;
-            }
-        }
-            if (IsStockPile)
-            {
-                // For stock pile, raise the stock pile clicked event instead of flipping
-                StockPileClicked?.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                // For other cards, flip face up/down as before
                 IsFaceUp = !IsFaceUp;
             }
         }
