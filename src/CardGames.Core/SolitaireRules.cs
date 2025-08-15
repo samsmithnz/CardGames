@@ -166,19 +166,25 @@ namespace CardGames.Core
         }
 
         /// <summary>
-        /// Finds the first foundation pile where a card can be placed
+        /// Finds the foundation pile for a card's specific suite
         /// </summary>
         /// <param name="card">The card to place</param>
         /// <returns>The foundation index (0-3) if a valid placement is found, -1 otherwise</returns>
         public int FindAvailableFoundationPile(Card card)
         {
-            for (int foundationIndex = 0; foundationIndex < 4; foundationIndex++)
+            if (card == null)
             {
-                if (CanPlaceCardOnFoundation(card, foundationIndex))
-                {
-                    return foundationIndex;
-                }
+                return -1;
             }
+
+            // Each suite maps to a specific foundation pile based on the enum index
+            int suiteFoundationIndex = (int)card.Suite;
+            
+            if (CanPlaceCardOnFoundation(card, suiteFoundationIndex))
+            {
+                return suiteFoundationIndex;
+            }
+            
             return -1;
         }
 
