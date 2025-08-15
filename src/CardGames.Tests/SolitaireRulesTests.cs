@@ -314,25 +314,57 @@ namespace CardGames.Tests
             Card aceSpades = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Spade };
             Card twoSpades = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Spade };
 
-            //Act & Assert - Aces can be placed on empty foundations
+            //Act & Assert - Each suite should go to its specific foundation pile
+            // Heart = 0, Club = 1, Diamond = 2, Spade = 3
             Assert.AreEqual(0, rules.FindAvailableFoundationPile(aceHearts));
-            Assert.AreEqual(0, rules.FindAvailableFoundationPile(aceSpades));
+            Assert.AreEqual(3, rules.FindAvailableFoundationPile(aceSpades));
 
             // Place Ace of Hearts on foundation 0
             rules.FoundationPiles[0].Add(aceHearts);
 
-            //Act & Assert - Two of Hearts can go on foundation 0, but Ace of Spades should go to foundation 1
+            //Act & Assert - Two of Hearts can go on foundation 0, Two of Spades cannot be placed yet
             Assert.AreEqual(0, rules.FindAvailableFoundationPile(twoHearts));
-            Assert.AreEqual(1, rules.FindAvailableFoundationPile(aceSpades));
-
-            // Two of Spades cannot be placed anywhere yet
             Assert.AreEqual(-1, rules.FindAvailableFoundationPile(twoSpades));
 
-            // Place Ace of Spades on foundation 1
-            rules.FoundationPiles[1].Add(aceSpades);
+            // Place Ace of Spades on foundation 3
+            rules.FoundationPiles[3].Add(aceSpades);
 
-            //Act & Assert - Now Two of Spades can go on foundation 1
-            Assert.AreEqual(1, rules.FindAvailableFoundationPile(twoSpades));
+            //Act & Assert - Now Two of Spades can go on foundation 3
+            Assert.AreEqual(3, rules.FindAvailableFoundationPile(twoSpades));
+        }
+
+        [TestMethod]
+        public void FindAvailableFoundationPile_AllSuitesTest()
+        {
+            //Arrange
+            SolitaireRules rules = new SolitaireRules();
+            Card aceHearts = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Heart };
+            Card aceClubs = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Club };
+            Card aceDiamonds = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Diamond };
+            Card aceSpades = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Spade };
+
+            //Act & Assert - Each ace should go to its specific foundation pile
+            Assert.AreEqual(0, rules.FindAvailableFoundationPile(aceHearts)); // Heart = 0
+            Assert.AreEqual(1, rules.FindAvailableFoundationPile(aceClubs)); // Club = 1
+            Assert.AreEqual(2, rules.FindAvailableFoundationPile(aceDiamonds)); // Diamond = 2
+            Assert.AreEqual(3, rules.FindAvailableFoundationPile(aceSpades)); // Spade = 3
+
+            // Place all aces on their foundation piles
+            rules.FoundationPiles[0].Add(aceHearts);
+            rules.FoundationPiles[1].Add(aceClubs);
+            rules.FoundationPiles[2].Add(aceDiamonds);
+            rules.FoundationPiles[3].Add(aceSpades);
+
+            // Test that 2s go to the correct foundation piles
+            Card twoHearts = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Heart };
+            Card twoClubs = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Club };
+            Card twoDiamonds = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Diamond };
+            Card twoSpades = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Spade };
+
+            Assert.AreEqual(0, rules.FindAvailableFoundationPile(twoHearts));
+            Assert.AreEqual(1, rules.FindAvailableFoundationPile(twoClubs));
+            Assert.AreEqual(2, rules.FindAvailableFoundationPile(twoDiamonds));
+            Assert.AreEqual(3, rules.FindAvailableFoundationPile(twoSpades));
         }
         
         [TestMethod]
