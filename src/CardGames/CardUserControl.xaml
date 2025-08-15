@@ -11,11 +11,19 @@
              DragLeave="CardUserControl_DragLeave"
              Drop="CardUserControl_Drop">
     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-        <Button Click="PicBack_Click" MouseDown="PicBack_MouseDown" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Image x:Name="PicBack" Source="Images/cardback1.jpg" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-        </Button>
-        <Button Click="PicBack_Click" MouseDown="PicBack_MouseDown" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-            <Image x:Name="PicCard" Source="Images/cardback1.jpg" Stretch="Uniform" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-        </Button>
+        <Image x:Name="PicBack"
+               Source="Images/cardback1.jpg"
+               Stretch="Uniform"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"
+               MouseDown="PicBack_MouseDown"
+               MouseLeftButtonUp="PicBack_Click"/>
+        <Image x:Name="PicCard"
+               Source="Images/cardback1.jpg"
+               Stretch="Uniform"
+               HorizontalAlignment="Stretch"
+               VerticalAlignment="Stretch"
+               MouseDown="PicBack_MouseDown"
+               MouseLeftButtonUp="PicBack_Click"/>
     </Grid>
 </UserControl>
