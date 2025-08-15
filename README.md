@@ -27,8 +27,8 @@ The solution is organized into three main projects:
 
 - **Card System**: Complete playing card implementation with suits and numbers
 - **Deck Management**: Standard 52-card deck with shuffling capabilities
-- **Solitaire Rules**: Basic framework for Solitaire game variants
-- **Unit Testing**: Test coverage for core functionality
+- **Solitaire Game**: Full implementation of Klondike Solitaire with complete rule validation
+- **Unit Testing**: Comprehensive test coverage for all core functionality
 
 ## Getting Started
 
@@ -57,6 +57,17 @@ dotnet test src/CardGames.Tests/CardGames.Tests.csproj
 # Run the WPF application (Windows only)
 dotnet run --project src/CardGames.WPF/CardGames.WPF.csproj
 ```
+
+## Game Rules
+
+### Solitaire (Klondike)
+The repository includes a complete implementation of Klondike Solitaire. For detailed rules, setup instructions, and strategy tips, see the [Solitaire Rules Documentation](docs/SOLITAIRE_RULES.md).
+
+Key features:
+- Traditional 7-column tableau with alternating color placement
+- 4 foundation piles building from Ace to King by suit
+- Stock and waste pile mechanics with automatic reset
+- Complete move validation and win condition checking
 
 ## Technology Stack
 
