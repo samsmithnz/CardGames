@@ -330,8 +330,39 @@ namespace CardGames
         /// </summary>
         private void ExecuteMove(CardUserControl sourceControl, CardUserControl targetControl, Card card)
         {
-            // Implementation would handle the actual card movement between piles
-            // This is a simplified version that updates the UI
+            // Check if moving to foundation pile
+            if (foundationControls.Contains(targetControl))
+            {
+                int foundationIndex = foundationControls.IndexOf(targetControl);
+                
+                // Remove card from source
+                RemoveCardFromSource(sourceControl, card);
+                
+                // Add to foundation pile
+                solitaireRules.FoundationPiles[foundationIndex].Add(card);
+                targetControl.SetupCard(card);
+                targetControl.IsFaceUp = true;
+                
+                return;
+            }
+            
+            // Check if moving to tableau
+            int targetColumnIndex = GetTableauColumnIndex(targetControl);
+            if (targetColumnIndex >= 0)
+            {
+                // Remove card from source
+                RemoveCardFromSource(sourceControl, card);
+                
+                // Add to target tableau column
+                solitaireRules.TableauColumns[targetColumnIndex].Add(card);
+                
+                // Refresh the display for the target column to show proper stacking
+                RefreshTableauColumn(targetColumnIndex);
+                
+                return;
+            }
+            
+            // Handle other pile types (waste, stock, etc.)
             if (targetControl.Card == null)
             {
                 // Move to empty space
@@ -342,10 +373,141 @@ namespace CardGames
             else
             {
                 // Move to existing card (should stack)
-                // Note: Full implementation would require more complex stacking logic
                 targetControl.SetupCard(card);
                 targetControl.IsFaceUp = true;
                 sourceControl.Card = null;
+            }
+        }
+
+        /// <summary>
+        /// Get the tableau column index for a given CardUserControl
+        /// </summary>
+        /// <param name="control">The CardUserControl to find</param>
+        /// <returns>The column index (0-6) or -1 if not found in tableau</returns>
+        private int GetTableauColumnIndex(CardUserControl control)
+        {
+            for (int col = 0; col < tableauControls.Count; col++)
+            {
+                if (tableauControls[col].Contains(control))
+                {
+                    return col;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Get the position within a tableau column for a given CardUserControl
+        /// </summary>
+        /// <param name="control">The CardUserControl to find</param>
+        /// <returns>The position index within the column or -1 if not found</returns>
+        private int GetTableauPositionIndex(CardUserControl control)
+        {
+            int columnIndex = GetTableauColumnIndex(control);
+            if (columnIndex >= 0)
+            {
+                return tableauControls[columnIndex].IndexOf(control);
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Remove a card from its source location (tableau, foundation, waste, etc.)
+        /// </summary>
+        /// <param name="sourceControl">The source CardUserControl</param>
+        /// <param name="card">The card being moved</param>
+        private void RemoveCardFromSource(CardUserControl sourceControl, Card card)
+        {
+            // Check if removing from tableau
+            int sourceColumnIndex = GetTableauColumnIndex(sourceControl);
+            if (sourceColumnIndex >= 0)
+            {
+                List<Card> sourceColumn = solitaireRules.TableauColumns[sourceColumnIndex];
+                if (sourceColumn.Count > 0 && sourceColumn[sourceColumn.Count - 1] == card)
+                {
+                    sourceColumn.RemoveAt(sourceColumn.Count - 1);
+                    
+                    // Refresh the source column display
+                    RefreshTableauColumn(sourceColumnIndex);
+                    
+                    // If there are still cards in the column, make the new top card face-up
+                    if (sourceColumn.Count > 0)
+                    {
+                        // The newly exposed card should be face-up
+                        CardUserControl newTopControl = tableauControls[sourceColumnIndex][sourceColumn.Count - 1];
+                        newTopControl.IsFaceUp = true;
+                    }
+                }
+                return;
+            }
+            
+            // Check if removing from foundation
+            if (foundationControls.Contains(sourceControl))
+            {
+                int foundationIndex = foundationControls.IndexOf(sourceControl);
+                List<Card> foundation = solitaireRules.FoundationPiles[foundationIndex];
+                if (foundation.Count > 0 && foundation[foundation.Count - 1] == card)
+                {
+                    foundation.RemoveAt(foundation.Count - 1);
+                    
+                    // Update foundation display
+                    if (foundation.Count > 0)
+                    {
+                        sourceControl.SetupCard(foundation[foundation.Count - 1]);
+                        sourceControl.IsFaceUp = true;
+                    }
+                    else
+                    {
+                        sourceControl.Card = null;
+                    }
+                }
+                return;
+            }
+            
+            // Check if removing from waste pile
+            if (sourceControl == WastePile)
+            {
+                if (solitaireRules.WastePile.Count > 0 && solitaireRules.WastePile[solitaireRules.WastePile.Count - 1] == card)
+                {
+                    solitaireRules.WastePile.RemoveAt(solitaireRules.WastePile.Count - 1);
+                    UpdateWastePile();
+                }
+                return;
+            }
+            
+            // For other sources, just clear the UI control
+            sourceControl.Card = null;
+        }
+
+        /// <summary>
+        /// Refresh the display of a tableau column to show all cards properly stacked
+        /// </summary>
+        /// <param name="columnIndex">The column index to refresh</param>
+        private void RefreshTableauColumn(int columnIndex)
+        {
+            if (columnIndex < 0 || columnIndex >= tableauControls.Count)
+            {
+                return;
+            }
+            
+            List<Card> columnCards = solitaireRules.TableauColumns[columnIndex];
+            List<CardUserControl> columnControls = tableauControls[columnIndex];
+            
+            for (int row = 0; row < columnControls.Count; row++)
+            {
+                if (row < columnCards.Count)
+                {
+                    Card card = columnCards[row];
+                    columnControls[row].SetupCard(card);
+                    // Only the last card in each column should be face-up
+                    columnControls[row].IsFaceUp = (row == columnCards.Count - 1);
+                    columnControls[row].Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    columnControls[row].Card = null;
+                    columnControls[row].Visibility = Visibility.Hidden;
+                }
             }
         }
 
