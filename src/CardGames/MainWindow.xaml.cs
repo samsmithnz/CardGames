@@ -301,6 +301,7 @@ namespace CardGames
             else
             {
                 WastePile.Card = null;
+                WastePile.IsFaceUp = false;
             }
         }
 
