@@ -152,26 +152,23 @@ namespace CardGames
         {
             if (solitaireRules.StockPile.Count > 0)
             {
-                // Move top card from stock to waste
-                Card drawnCard = solitaireRules.StockPile[solitaireRules.StockPile.Count - 1];
-                solitaireRules.StockPile.RemoveAt(solitaireRules.StockPile.Count - 1);
-                solitaireRules.WastePile.Add(drawnCard);
-                
-                // Update UI
-                UpdateStockPile();
-                UpdateWastePile();
-                
-                StatusLabel.Content = $"Drew {drawnCard.Number} of {drawnCard.Suite}s";
+                // Use the core method to draw a card
+                bool drawn = solitaireRules.DrawFromStock();
+                if (drawn && solitaireRules.WastePile.Count > 0)
+                {
+                    Card drawnCard = solitaireRules.WastePile[solitaireRules.WastePile.Count - 1];
+                    
+                    // Update UI
+                    UpdateStockPile();
+                    UpdateWastePile();
+                    
+                    StatusLabel.Content = $"Drew {drawnCard.Number} of {drawnCard.Suite}s";
+                }
             }
             else if (solitaireRules.WastePile.Count > 0)
             {
-                // Reset stock pile from waste pile (when stock is empty)
-                while (solitaireRules.WastePile.Count > 0)
-                {
-                    Card card = solitaireRules.WastePile[solitaireRules.WastePile.Count - 1];
-                    solitaireRules.WastePile.RemoveAt(solitaireRules.WastePile.Count - 1);
-                    solitaireRules.StockPile.Add(card);
-                }
+                // Use the core method to reset stock pile from waste pile
+                solitaireRules.ResetStock();
                 
                 UpdateStockPile();
                 UpdateWastePile();
@@ -277,7 +274,10 @@ namespace CardGames
             }
             else
             {
+                // Keep the stock pile clickable even when empty by showing an empty card back
+                // This allows clicking to reset the stock from waste pile
                 StockPile.Card = null;
+                StockPile.IsFaceUp = false;
             }
         }
         
