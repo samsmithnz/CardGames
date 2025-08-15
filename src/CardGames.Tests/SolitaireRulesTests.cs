@@ -303,6 +303,24 @@ namespace CardGames.Tests
             Assert.AreEqual(blackKing, rules.TableauColumns[1][0], "Target column should have black King at bottom");
             Assert.AreEqual(redQueen, rules.TableauColumns[1][1], "Target column should have red Queen on top");
         }
+
+        [TestMethod]
+        public void WastePileTransitionFromCardsToEmpty_ShouldBeClearState()
+        {
+            //Arrange
+            SolitaireRules rules = new SolitaireRules();
+            Card testCard = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Heart };
+            
+            // Add a card to waste pile to simulate having drawn from stock
+            rules.WastePile.Add(testCard);
+            Assert.AreEqual(1, rules.WastePile.Count, "Waste pile should have one card");
+
+            //Act - Clear the waste pile (simulating card being moved elsewhere)
+            rules.WastePile.Clear();
+
+            //Assert
+            Assert.AreEqual(0, rules.WastePile.Count, "Waste pile should be empty");
+        }
         
     }
 }
