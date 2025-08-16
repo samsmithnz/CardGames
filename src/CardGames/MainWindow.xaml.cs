@@ -31,6 +31,7 @@ namespace CardGames
         // Collections to manage all card controls by pile type
         private List<CardUserControl> foundationControls;
         private List<List<CardUserControl>> tableauControls;
+        private List<Canvas> tableauCanvases; // Canvas containers for each tableau column
         
         // Track which positions in each tableau column should be face-up
         // This preserves face-up state during card moves and stacking
@@ -118,6 +119,18 @@ namespace CardGames
                 new List<CardUserControl> { Tableau5_1, Tableau5_2, Tableau5_3, Tableau5_4, Tableau5_5 },
                 new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
                 new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 }
+            };
+
+            // Map the Canvas for each tableau column for dynamic UI growth
+            tableauCanvases = new List<Canvas>
+            {
+                TableauColumn1,
+                TableauColumn2,
+                TableauColumn3,
+                TableauColumn4,
+                TableauColumn5,
+                TableauColumn6,
+                TableauColumn7
             };
             
             // Initialize face-up state tracking for tableau columns
@@ -756,25 +769,29 @@ namespace CardGames
             List<Card> columnCards = solitaireRules.TableauColumns[columnIndex];
             List<CardUserControl> columnControls = tableauControls[columnIndex];
 
-            // Ensure states list can represent all current cards
+            // Ensure we have enough UI controls and face-up states
+            EnsureTableauUiCapacity(columnIndex, columnCards.Count);
             EnsureFaceUpStateCapacity(columnIndex, columnCards.Count);
 
-            DebugLog($"RefreshTableauColumn[{columnIndex}]: {columnCards.Count} cards in data, {columnControls.Count} controls available");
+            DebugLog($"RefreshTableauColumn[{columnIndex}]: {columnCards.Count} cards in data, {tableauControls[columnIndex].Count} controls available");
+            
+            // Refresh local reference in case the list grew
+            columnControls = tableauControls[columnIndex];
             
             for (int row = 0; row < columnControls.Count; row++)
             {
                 if (row < columnCards.Count)
                 {
                     Card card = columnCards[row];
-                    columnControls[row].SetupCard(card);
-                    // Only the cards with face-up state true should be visible face-up
+                    CardUserControl control = columnControls[row];
+                    control.SetupCard(card);
                     bool faceUp = row < tableauFaceUpStates[columnIndex].Count ? tableauFaceUpStates[columnIndex][row] : (row == columnCards.Count - 1);
-                    columnControls[row].IsFaceUp = faceUp;
-                    columnControls[row].Visibility = Visibility.Visible;
-                    
-                    // Set proper positioning for partial stacking using TableauVerticalOffset
+                    control.IsFaceUp = faceUp;
+                    control.Visibility = Visibility.Visible;
+
                     double topPosition = row * CardVisualConstants.TableauVerticalOffset;
-                    Canvas.SetTop(columnControls[row], topPosition);
+                    Canvas.SetTop(control, topPosition);
+                    Panel.SetZIndex(control, row);
                     DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}");
                 }
                 else
@@ -786,6 +803,31 @@ namespace CardGames
             }
         }
 
+        /// <summary>
+        /// Ensure there are enough UI CardUserControl slots for the given tableau column.
+        /// If not, create additional controls, wire events, and add to the Canvas.
+        /// </summary>
+        private void EnsureTableauUiCapacity(int columnIndex, int requiredCount)
+        {
+            if (columnIndex < 0 || columnIndex >= tableauControls.Count)
+            {
+                return;
+            }
+
+            List<CardUserControl> controls = tableauControls[columnIndex];
+            Canvas canvas = tableauCanvases[columnIndex];
+
+            while (controls.Count < requiredCount)
+            {
+                CardUserControl control = new CardUserControl();
+                control.CardDragStarted += OnCardDragStarted;
+                control.CardDropped += OnCardDropped;
+                control.ValidateDrop += OnValidateDrop;
+                control.CardClicked += OnCardClicked;
+                canvas.Children.Add(control);
+                controls.Add(control);
+            }
+        }
         
         /// <summary>
         /// Validate a move with detailed feedback
