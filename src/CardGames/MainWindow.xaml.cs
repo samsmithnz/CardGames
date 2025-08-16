@@ -437,18 +437,29 @@ namespace CardGames
             else
             {
                 // Move to existing card (should stack)
-                // First check if this is actually a tableau move that wasn't caught above
+                // Check if this is a tableau move - try a more comprehensive detection
                 int targetColumnIndexForExistingCard = GetTableauColumnIndex(targetControl);
-                if (targetColumnIndexForExistingCard >= 0)
+                bool isTableauMove = (targetColumnIndexForExistingCard >= 0) || IsTableauCardControl(targetControl);
+                
+                if (isTableauMove)
                 {
                     // This is a tableau move - handle it properly
-                    RemoveCardFromSource(sourceControl, card);
+                    if (targetColumnIndexForExistingCard < 0)
+                    {
+                        // Detection failed but we know it's a tableau card - find it manually
+                        targetColumnIndexForExistingCard = FindTableauColumnForCard(targetControl);
+                    }
                     
-                    // Add to target tableau column
-                    solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Add(card);
-                    
-                    // Refresh the display for the target column to show proper stacking
-                    RefreshTableauColumn(targetColumnIndexForExistingCard);
+                    if (targetColumnIndexForExistingCard >= 0)
+                    {
+                        RemoveCardFromSource(sourceControl, card);
+                        
+                        // Add to target tableau column
+                        solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Add(card);
+                        
+                        // Refresh the display for the target column to show proper stacking
+                        RefreshTableauColumn(targetColumnIndexForExistingCard);
+                    }
                 }
                 else
                 {
@@ -472,6 +483,45 @@ namespace CardGames
                 if (tableauControls[col].Contains(control))
                 {
                     return col;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Check if a CardUserControl is part of any tableau column
+        /// This provides a more comprehensive check than GetTableauColumnIndex
+        /// </summary>
+        /// <param name="control">The CardUserControl to check</param>
+        /// <returns>True if the control is a tableau card control</returns>
+        private bool IsTableauCardControl(CardUserControl control)
+        {
+            foreach (List<CardUserControl> column in tableauControls)
+            {
+                if (column.Contains(control))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Find the tableau column index for a card control using a more thorough search
+        /// This is a fallback when GetTableauColumnIndex fails
+        /// </summary>
+        /// <param name="control">The CardUserControl to find</param>
+        /// <returns>The column index (0-6) or -1 if not found</returns>
+        private int FindTableauColumnForCard(CardUserControl control)
+        {
+            for (int col = 0; col < tableauControls.Count; col++)
+            {
+                for (int row = 0; row < tableauControls[col].Count; row++)
+                {
+                    if (tableauControls[col][row] == control)
+                    {
+                        return col;
+                    }
                 }
             }
             return -1;
