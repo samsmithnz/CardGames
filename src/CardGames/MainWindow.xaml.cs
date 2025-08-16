@@ -28,6 +28,10 @@ namespace CardGames
         // Collections to manage all card controls by pile type
         private List<CardUserControl> foundationControls;
         private List<List<CardUserControl>> tableauControls;
+        
+        // Track which positions in each tableau column should be face-up
+        // This preserves face-up state during card moves and stacking
+        private List<List<bool>> tableauFaceUpStates;
 
         public MainWindow()
         {
@@ -55,6 +59,18 @@ namespace CardGames
                 new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
                 new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 }
             };
+            
+            // Initialize face-up state tracking for tableau columns
+            tableauFaceUpStates = new List<List<bool>>();
+            for (int i = 0; i < 7; i++)
+            {
+                tableauFaceUpStates.Add(new List<bool>());
+                // Initialize with enough slots for maximum possible cards in each column
+                for (int j = 0; j < tableauControls[i].Count; j++)
+                {
+                    tableauFaceUpStates[i].Add(false);
+                }
+            }
             
             SetupCardEvents();
             
@@ -115,10 +131,38 @@ namespace CardGames
             deck.Shuffle();
             solitaireRules.DealCards(deck);
             
+            // Initialize face-up states for new game
+            InitializeTableauFaceUpStates();
+            
             // Display dealt cards on the table
             DisplayGame();
             
             StatusLabel.Content = "New game started! Drag cards to move them.";
+        }
+
+        /// <summary>
+        /// Initialize face-up states for tableau columns based on standard Solitaire rules
+        /// Only the last card in each column should be face-up initially
+        /// </summary>
+        private void InitializeTableauFaceUpStates()
+        {
+            for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
+            {
+                List<Card> columnCards = solitaireRules.TableauColumns[col];
+                List<bool> columnFaceUpStates = tableauFaceUpStates[col];
+                
+                // Reset all states to false first
+                for (int row = 0; row < columnFaceUpStates.Count; row++)
+                {
+                    columnFaceUpStates[row] = false;
+                }
+                
+                // Set only the last card to face-up if the column has cards
+                if (columnCards.Count > 0)
+                {
+                    columnFaceUpStates[columnCards.Count - 1] = true;
+                }
+            }
         }
 
         /// <summary>
@@ -249,8 +293,8 @@ namespace CardGames
                     {
                         Card card = columnCards[row];
                         columnControls[row].SetupCard(card);
-                        // Only the last card in each column should be face-up initially
-                        columnControls[row].IsFaceUp = (row == columnCards.Count - 1);
+                        // Use the tracked face-up state
+                        columnControls[row].IsFaceUp = tableauFaceUpStates[col][row];
                         columnControls[row].Visibility = Visibility.Visible;
                     }
                     else
@@ -420,6 +464,10 @@ namespace CardGames
                 // Add to target tableau column
                 solitaireRules.TableauColumns[targetColumnIndex].Add(card);
                 
+                // Update face-up state tracking - newly added card should be face-up
+                int newCardPosition = solitaireRules.TableauColumns[targetColumnIndex].Count - 1;
+                tableauFaceUpStates[targetColumnIndex][newCardPosition] = true;
+                
                 // Refresh the display for the target column to show proper stacking
                 RefreshTableauColumn(targetColumnIndex);
                 
@@ -456,6 +504,10 @@ namespace CardGames
                         
                         // Add to target tableau column
                         solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Add(card);
+                        
+                        // Update face-up state tracking - newly added card should be face-up
+                        int newCardPosition = solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Count - 1;
+                        tableauFaceUpStates[targetColumnIndexForExistingCard][newCardPosition] = true;
                         
                         // Refresh the display for the target column to show proper stacking
                         RefreshTableauColumn(targetColumnIndexForExistingCard);
@@ -564,6 +616,9 @@ namespace CardGames
                     // If there are still cards in the column, make the new top card face-up
                     if (sourceColumn.Count > 0)
                     {
+                        // Update the face-up state tracking - newly exposed card becomes face-up
+                        tableauFaceUpStates[sourceColumnIndex][sourceColumn.Count - 1] = true;
+                        
                         // The newly exposed card should be face-up
                         CardUserControl newTopControl = tableauControls[sourceColumnIndex][sourceColumn.Count - 1];
                         newTopControl.IsFaceUp = true;
@@ -630,8 +685,8 @@ namespace CardGames
                 {
                     Card card = columnCards[row];
                     columnControls[row].SetupCard(card);
-                    // Only the last card in each column should be face-up
-                    columnControls[row].IsFaceUp = (row == columnCards.Count - 1);
+                    // Use the tracked face-up state instead of just the last card
+                    columnControls[row].IsFaceUp = tableauFaceUpStates[columnIndex][row];
                     columnControls[row].Visibility = Visibility.Visible;
                 }
                 else
