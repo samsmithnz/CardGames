@@ -633,16 +633,6 @@ namespace CardGames
                     return col;
                 }
             }
-        /// <returns>The column index (0-6) or -1 if not found in tableau</returns>
-        private int GetTableauColumnIndex(CardUserControl control)
-        {
-            for (int col = 0; col < tableauControls.Count; col++)
-            {
-                if (tableauControls[col].Contains(control))
-                {
-                    return col;
-                }
-            }
             return -1;
         }
 
