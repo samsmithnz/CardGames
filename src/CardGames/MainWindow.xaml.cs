@@ -364,31 +364,10 @@ namespace CardGames
                 }
             }
             
-            // Display tableau columns
+            // Display tableau columns (use centralized stacking/positioning logic)
             for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
             {
-                List<Card> columnCards = solitaireRules.TableauColumns[col];
-                List<CardUserControl> columnControls = tableauControls[col];
-
-                // Ensure states list can represent all current cards
-                EnsureFaceUpStateCapacity(col, columnCards.Count);
-                
-                for (int row = 0; row < columnControls.Count; row++)
-                {
-                    if (row < columnCards.Count)
-                    {
-                        Card card = columnCards[row];
-                        columnControls[row].SetupCard(card);
-                        // Use the tracked face-up state
-                        bool faceUp = row < tableauFaceUpStates[col].Count ? tableauFaceUpStates[col][row] : (row == columnCards.Count - 1);
-                        columnControls[row].IsFaceUp = faceUp;
-                        columnControls[row].Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        columnControls[row].Visibility = Visibility.Hidden;
-                    }
-                }
+                RefreshTableauColumn(col);
             }
         }
         
