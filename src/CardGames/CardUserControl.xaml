@@ -23,7 +23,8 @@
                HorizontalAlignment="Stretch"
                VerticalAlignment="Stretch"
                MouseLeftButtonDown="PicBack_MouseDown"
-               MouseMove="PicBack_MouseMove"/>
+               MouseMove="PicBack_MouseMove"
+               MouseLeftButtonUp="PicBack_MouseUp"/>
         <!-- Front image (face-up) -->
         <Image x:Name="PicCard"
                Source="Images/cardback1.jpg"
@@ -31,6 +32,7 @@
                HorizontalAlignment="Stretch"
                VerticalAlignment="Stretch"
                MouseLeftButtonDown="PicBack_MouseDown"
-               MouseMove="PicBack_MouseMove"/>
+               MouseMove="PicBack_MouseMove"
+               MouseLeftButtonUp="PicBack_MouseUp"/>
     </Grid>
 </UserControl>
