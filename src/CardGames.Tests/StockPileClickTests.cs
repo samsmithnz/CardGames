@@ -7,6 +7,26 @@ namespace CardGames.Tests
     public class StockPileClickTests
     {
         [TestMethod]
+        public void StockPile_SingleClick_DrawsCard_WhenStockHasCards()
+        {
+            // Arrange
+            SolitaireRules rules = new SolitaireRules();
+            Deck deck = new Deck();
+            rules.DealCards(deck);
+            
+            int initialStockCount = rules.StockPile.Count;
+            int initialWasteCount = rules.WastePile.Count;
+            
+            // Act - Simulate single-clicking on stock pile (drawing a card)
+            bool drawn = rules.DrawFromStock();
+            
+            // Assert
+            Assert.IsTrue(drawn, "Should be able to draw from stock when it has cards");
+            Assert.AreEqual(initialStockCount - 1, rules.StockPile.Count, "Stock pile should have one less card");
+            Assert.AreEqual(initialWasteCount + 1, rules.WastePile.Count, "Waste pile should have one more card");
+        }
+        
+        [TestMethod]
         public void StockPile_ClickDrawsCard_WhenStockHasCards()
         {
             // Arrange

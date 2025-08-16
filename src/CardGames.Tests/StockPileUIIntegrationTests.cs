@@ -104,5 +104,28 @@ namespace CardGames.Tests
             // Click stock (empty) → Reset from waste  
             // Click stock (with cards again) → Draw to waste again
         }
+        
+        [TestMethod]
+        public void StockPile_SingleClickInteraction_WorksCorrectly()
+        {
+            // This test simulates the UI behavior where single-click on stock pile
+            // should trigger the same action as the previous double-click behavior
+            
+            // Arrange
+            SolitaireRules rules = new SolitaireRules();
+            Deck deck = new Deck();
+            rules.DealCards(deck);
+            
+            int initialStockCount = rules.StockPile.Count;
+            
+            // Act - Simulate single-click on stock pile (same logic as OnStockPileClicked)
+            // This represents what happens when PicBack_MouseUp triggers StockPileClicked event
+            bool drawn = rules.DrawFromStock();
+            
+            // Assert
+            Assert.IsTrue(drawn, "Single-click should draw a card when stock has cards");
+            Assert.AreEqual(initialStockCount - 1, rules.StockPile.Count, "Stock pile should have one less card");
+            Assert.AreEqual(1, rules.WastePile.Count, "Waste pile should have one card");
+        }
     }
 }

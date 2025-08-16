@@ -173,6 +173,20 @@ namespace CardGames
             }
         }
 
+        private void PicBack_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            // Handle single-click for stock pile when no drag occurred
+            if (e.LeftButton == MouseButtonState.Released && !_isDragging && IsStockPile)
+            {
+                // For stock pile, raise the stock pile clicked event on single-click
+                StockPileClicked?.Invoke(this, EventArgs.Empty);
+                e.Handled = true;
+            }
+            
+            // Reset dragging state
+            _isDragging = false;
+        }
+
         private void PicBack_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             // Reset dragging state
