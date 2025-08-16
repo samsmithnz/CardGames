@@ -617,35 +617,40 @@ namespace CardGames
                 }
             }
             
-            // Check if moving to tableau (implement basic tableau rules)
-            if (targetControl.Card == null)
+            // Check if moving to tableau
+            int targetColumnIndex = GetTableauColumnIndex(targetControl);
+            if (targetColumnIndex >= 0)
             {
-                // Empty tableau space - only allow Kings
-                if (card.Number == Card.CardNumber.K)
+                // This is a tableau move - use SolitaireRules validation
+                if (solitaireRules.CanPlaceCardOnTableau(card, targetColumnIndex))
                 {
                     return "Valid";
                 }
                 else
                 {
-                    return "Only Kings can be placed on empty tableau spaces";
+                    // Provide specific error message for empty vs non-empty tableau columns
+                    if (solitaireRules.TableauColumns[targetColumnIndex].Count == 0)
+                    {
+                        return "Only Kings can be placed on empty tableau spaces";
+                    }
+                    else
+                    {
+                        Card topCard = solitaireRules.TableauColumns[targetColumnIndex][solitaireRules.TableauColumns[targetColumnIndex].Count - 1];
+                        return $"{card.Number} cannot be placed on {topCard.Number} - must be one rank lower and opposite color";
+                    }
                 }
             }
             
-            Card targetCard = targetControl.Card;
-            
-            // Check rank (must be one lower)
-            if (!IsOneRankLower(card.Number, targetCard.Number))
+            // Check if moving to other empty spaces (non-tableau)
+            if (targetControl.Card == null)
             {
-                return $"{card.Number} cannot be placed on {targetCard.Number} - must be one rank lower";
+                // This is not a tableau move to an empty space
+                return "Cannot place cards on this empty space";
             }
             
-            // Check color (must be opposite)
-            if (!IsOppositeColor(card, targetCard))
-            {
-                return $"{GetColorName(card)} {card.Number} cannot be placed on {GetColorName(targetCard)} {targetCard.Number} - must be opposite color";
-            }
-            
-            return "Valid";
+            // If we reach here, it's a move to a non-tableau target with an existing card
+            // This shouldn't happen in normal Solitaire gameplay
+            return "Invalid move - cannot place card here";
         }
 
         /// <summary>
