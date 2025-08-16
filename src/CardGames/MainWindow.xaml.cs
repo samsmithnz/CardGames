@@ -1,4 +1,6 @@
-﻿using CardGames.Core;
+﻿using System.IO;
+using Microsoft.Win32;
+using CardGames.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -631,6 +633,16 @@ namespace CardGames
                     return col;
                 }
             }
+        /// <returns>The column index (0-6) or -1 if not found in tableau</returns>
+        private int GetTableauColumnIndex(CardUserControl control)
+        {
+            for (int col = 0; col < tableauControls.Count; col++)
+            {
+                if (tableauControls[col].Contains(control))
+                {
+                    return col;
+                }
+            }
             return -1;
         }
 
@@ -777,6 +789,8 @@ namespace CardGames
 
             // Ensure states list can represent all current cards
             EnsureFaceUpStateCapacity(columnIndex, columnCards.Count);
+
+            DebugLog($"RefreshTableauColumn[{columnIndex}]: {columnCards.Count} cards in data, {columnControls.Count} controls available");
             
             for (int row = 0; row < columnControls.Count; row++)
             {
@@ -790,12 +804,15 @@ namespace CardGames
                     columnControls[row].Visibility = Visibility.Visible;
                     
                     // Set proper positioning for partial stacking using TableauVerticalOffset
-                    Canvas.SetTop(columnControls[row], row * CardVisualConstants.TableauVerticalOffset);
+                    double topPosition = row * CardVisualConstants.TableauVerticalOffset;
+                    Canvas.SetTop(columnControls[row], topPosition);
+                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}");
                 }
                 else
                 {
                     columnControls[row].Card = null;
                     columnControls[row].Visibility = Visibility.Hidden;
+                    DebugLog($"  Control[{row}] = hidden (no card)");
                 }
             }
         }
@@ -925,6 +942,68 @@ namespace CardGames
                 case Card.CardNumber.Q: return 12;
                 case Card.CardNumber.K: return 13;
                 default: return 0;
+            }
+        }
+
+        private void SaveGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SaveFileDialog dlg = new SaveFileDialog
+                {
+                    Title = "Save Solitaire State",
+                    Filter = "Solitaire State (*.json)|*.json",
+                    FileName = "solitaire-state.json"
+                };
+
+                bool? result = dlg.ShowDialog(this);
+                if (result == true)
+                {
+                    string json = solitaireRules.ExportState("saved from UI").ToJson(true);
+                    File.WriteAllText(dlg.FileName, json);
+                    StatusLabel.Content = $"Game saved to {System.IO.Path.GetFileName(dlg.FileName)}";
+                    DebugLog($"Saved game state -> {dlg.FileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Failed to save game: {ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog dlg = new OpenFileDialog
+                {
+                    Title = "Load Solitaire State",
+                    Filter = "Solitaire State (*.json)|*.json"
+                };
+
+                bool? result = dlg.ShowDialog(this);
+                if (result == true)
+                {
+                    string json = File.ReadAllText(dlg.FileName);
+                    SolitaireState state = SolitaireState.FromJson(json);
+
+                    // Replace rules state
+                    solitaireRules.ImportState(state);
+
+                    // Reset and recompute face-up states based on standard rules
+                    InitializeTableauFaceUpStates();
+
+                    // Redraw UI
+                    ClearAllCards();
+                    DisplayGame();
+
+                    StatusLabel.Content = $"Game loaded from {System.IO.Path.GetFileName(dlg.FileName)}";
+                    DebugLog($"Loaded game state <- {dlg.FileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Failed to load game: {ex.Message}", "Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

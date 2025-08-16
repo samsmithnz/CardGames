@@ -73,7 +73,7 @@
             <Border Canvas.Left="50" Canvas.Top="200" Width="90" Height="400" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <Canvas x:Name="TableauColumn1">
-                    <local:CardUserControl x:Name="Tableau1_1" Canvas.Top="0"/>
+                    <local:CardUserControl x:Name="Tableau1_1"/>
                 </Canvas>
             </Border>
             
@@ -81,8 +81,8 @@
             <Border Canvas.Left="160" Canvas.Top="200" Width="90" Height="400" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <Canvas x:Name="TableauColumn2">
-                    <local:CardUserControl x:Name="Tableau2_1" Canvas.Top="0"/>
-                    <local:CardUserControl x:Name="Tableau2_2" Canvas.Top="{x:Static core:CardVisualConstants.TableauVerticalOffset}"/>
+                    <local:CardUserControl x:Name="Tableau2_1"/>
+                    <local:CardUserControl x:Name="Tableau2_2"/>
                 </Canvas>
             </Border>
             
@@ -90,9 +90,9 @@
             <Border Canvas.Left="270" Canvas.Top="200" Width="90" Height="400" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <Canvas x:Name="TableauColumn3">
-                    <local:CardUserControl x:Name="Tableau3_1" Canvas.Top="0"/>
-                    <local:CardUserControl x:Name="Tableau3_2" Canvas.Top="{x:Static core:CardVisualConstants.TableauVerticalOffset}"/>
-                    <local:CardUserControl x:Name="Tableau3_3" Canvas.Top="40"/>
+                    <local:CardUserControl x:Name="Tableau3_1"/>
+                    <local:CardUserControl x:Name="Tableau3_2"/>
+                    <local:CardUserControl x:Name="Tableau3_3"/>
                 </Canvas>
             </Border>
             
@@ -100,10 +100,10 @@
             <Border Canvas.Left="380" Canvas.Top="200" Width="90" Height="400" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <Canvas x:Name="TableauColumn4">
-                    <local:CardUserControl x:Name="Tableau4_1" Canvas.Top="0"/>
-                    <local:CardUserControl x:Name="Tableau4_2" Canvas.Top="{x:Static core:CardVisualConstants.TableauVerticalOffset}"/>
-                    <local:CardUserControl x:Name="Tableau4_3" Canvas.Top="40"/>
-                    <local:CardUserControl x:Name="Tableau4_4" Canvas.Top="60"/>
+                    <local:CardUserControl x:Name="Tableau4_1"/>
+                    <local:CardUserControl x:Name="Tableau4_2"/>
+                    <local:CardUserControl x:Name="Tableau4_3"/>
+                    <local:CardUserControl x:Name="Tableau4_4"/>
                 </Canvas>
             </Border>
             
@@ -111,11 +111,11 @@
             <Border Canvas.Left="490" Canvas.Top="200" Width="90" Height="400" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <Canvas x:Name="TableauColumn5">
-                    <local:CardUserControl x:Name="Tableau5_1" Canvas.Top="0"/>
-                    <local:CardUserControl x:Name="Tableau5_2" Canvas.Top="{x:Static core:CardVisualConstants.TableauVerticalOffset}"/>
-                    <local:CardUserControl x:Name="Tableau5_3" Canvas.Top="40"/>
-                    <local:CardUserControl x:Name="Tableau5_4" Canvas.Top="60"/>
-                    <local:CardUserControl x:Name="Tableau5_5" Canvas.Top="80"/>
+                    <local:CardUserControl x:Name="Tableau5_1"/>
+                    <local:CardUserControl x:Name="Tableau5_2"/>
+                    <local:CardUserControl x:Name="Tableau5_3"/>
+                    <local:CardUserControl x:Name="Tableau5_4"/>
+                    <local:CardUserControl x:Name="Tableau5_5"/>
                 </Canvas>
             </Border>
             
@@ -123,12 +123,12 @@
             <Border Canvas.Left="600" Canvas.Top="200" Width="90" Height="400" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <Canvas x:Name="TableauColumn6">
-                    <local:CardUserControl x:Name="Tableau6_1" Canvas.Top="0"/>
-                    <local:CardUserControl x:Name="Tableau6_2" Canvas.Top="{x:Static core:CardVisualConstants.TableauVerticalOffset}"/>
-                    <local:CardUserControl x:Name="Tableau6_3" Canvas.Top="40"/>
-                    <local:CardUserControl x:Name="Tableau6_4" Canvas.Top="60"/>
-                    <local:CardUserControl x:Name="Tableau6_5" Canvas.Top="80"/>
-                    <local:CardUserControl x:Name="Tableau6_6" Canvas.Top="100"/>
+                    <local:CardUserControl x:Name="Tableau6_1"/>
+                    <local:CardUserControl x:Name="Tableau6_2"/>
+                    <local:CardUserControl x:Name="Tableau6_3"/>
+                    <local:CardUserControl x:Name="Tableau6_4"/>
+                    <local:CardUserControl x:Name="Tableau6_5"/>
+                    <local:CardUserControl x:Name="Tableau6_6"/>
                 </Canvas>
             </Border>
             
@@ -136,13 +136,13 @@
             <Border Canvas.Left="710" Canvas.Top="200" Width="90" Height="400" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <Canvas x:Name="TableauColumn7">
-                    <local:CardUserControl x:Name="Tableau7_1" Canvas.Top="0"/>
-                    <local:CardUserControl x:Name="Tableau7_2" Canvas.Top="{x:Static core:CardVisualConstants.TableauVerticalOffset}"/>
-                    <local:CardUserControl x:Name="Tableau7_3" Canvas.Top="40"/>
-                    <local:CardUserControl x:Name="Tableau7_4" Canvas.Top="60"/>
-                    <local:CardUserControl x:Name="Tableau7_5" Canvas.Top="80"/>
-                    <local:CardUserControl x:Name="Tableau7_6" Canvas.Top="100"/>
-                    <local:CardUserControl x:Name="Tableau7_7" Canvas.Top="120"/>
+                    <local:CardUserControl x:Name="Tableau7_1"/>
+                    <local:CardUserControl x:Name="Tableau7_2"/>
+                    <local:CardUserControl x:Name="Tableau7_3"/>
+                    <local:CardUserControl x:Name="Tableau7_4"/>
+                    <local:CardUserControl x:Name="Tableau7_5"/>
+                    <local:CardUserControl x:Name="Tableau7_6"/>
+                    <local:CardUserControl x:Name="Tableau7_7"/>
                 </Canvas>
             </Border>
         </Canvas>
@@ -150,6 +150,8 @@
         <!-- Control Buttons -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
             <Button x:Name="NewGameButton" Content="New Game" Click="NewGameButton_Click" Margin="5" Padding="10,5"/>
+            <Button x:Name="SaveGameButton" Content="Save Game" Click="SaveGameButton_Click" Margin="5" Padding="10,5"/>
+            <Button x:Name="LoadGameButton" Content="Load Game" Click="LoadGameButton_Click" Margin="5" Padding="10,5"/>
         </StackPanel>
         
         <!-- Status Bar -->
