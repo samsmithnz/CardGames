@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CardGames.Core\CardGames.Core.csproj" />
+    <ProjectReference Include="..\CardGames\CardGames.csproj" />
   </ItemGroup>
 
 </Project>
