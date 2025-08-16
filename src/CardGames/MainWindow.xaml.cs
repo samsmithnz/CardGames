@@ -1,8 +1,19 @@
 ﻿using CardGames.Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 
 namespace CardGames
 {
@@ -23,12 +34,69 @@ namespace CardGames
         // This preserves face-up state during card moves and stacking
         private List<List<bool>> tableauFaceUpStates;
 
+        // Debug toggle
+        private bool debugEnabled = true;
+
         public MainWindow()
         {
             InitializeComponent();
             InitializeGame();
         }
         
+        /// <summary>
+        /// Write a debug line to Output window
+        /// </summary>
+        private void DebugLog(string message)
+        {
+            if (debugEnabled)
+            {
+                Debug.WriteLine($"[DEBUG] {message}");
+            }
+        }
+
+        /// <summary>
+        /// Friendly description of a card
+        /// </summary>
+        private string DescribeCard(Card card)
+        {
+            if (card == null)
+            {
+                return "(no card)";
+            }
+            return $"{card.Number} of {card.Suite}s";
+        }
+
+        /// <summary>
+        /// Friendly description of where a control lives
+        /// </summary>
+        private string DescribeControl(CardUserControl control)
+        {
+            if (control == null)
+            {
+                return "(null control)";
+            }
+            if (ReferenceEquals(control, StockPile))
+            {
+                return "StockPile";
+            }
+            if (ReferenceEquals(control, WastePile))
+            {
+                return "WastePile";
+            }
+            int fIndex = foundationControls != null ? foundationControls.IndexOf(control) : -1;
+            if (fIndex >= 0)
+            {
+                return $"Foundation[{fIndex}]";
+            }
+            int tCol = GetTableauColumnIndex(control);
+            if (tCol >= 0)
+            {
+                int tRow = GetTableauPositionIndex(control);
+                return $"Tableau[col={tCol}, row={tRow}]";
+            }
+            return "UnknownControl";
+        }
+
         /// <summary>
         /// Initialize the game components and layout
         /// </summary>
@@ -218,11 +286,13 @@ namespace CardGames
                     UpdateWastePile();
                     
                     StatusLabel.Content = $"Drew {drawnCard.Number} of {drawnCard.Suite}s";
+                    DebugLog($"Drew card -> {DescribeCard(drawnCard)}. Waste size: {solitaireRules.WastePile.Count}");
                 }
             }
             else if (solitaireRules.WastePile.Count > 0)
             {
                 // Use the core method to reset stock pile from waste pile
+                DebugLog("Resetting stock from waste pile");
                 solitaireRules.ResetStock();
                 
                 UpdateStockPile();
@@ -366,6 +436,7 @@ namespace CardGames
         {
             dragSourceControl = sender as CardUserControl;
             StatusLabel.Content = $"Dragging {card.Number} of {card.Suite}s";
+            DebugLog($"DragStarted from {DescribeControl(dragSourceControl)} with {DescribeCard(card)}");
         }
 
         /// <summary>
@@ -376,6 +447,7 @@ namespace CardGames
             // Validate the move using Solitaire rules
             string validationResult = ValidateMoveDetailed(e.DraggedCard, e.TargetControl);
             e.IsValid = validationResult == "Valid";
+            DebugLog($"ValidateDrop: {DescribeCard(e.DraggedCard)} from {DescribeControl(dragSourceControl)} to {DescribeControl(e.TargetControl)} -> {validationResult}");
         }
 
         /// <summary>
@@ -388,6 +460,7 @@ namespace CardGames
             
             // Validate the move and provide detailed feedback
             string validationResult = ValidateMoveDetailed(droppedCard, targetControl);
+            DebugLog($"Drop: {DescribeCard(droppedCard)} to {DescribeControl(targetControl)} -> {validationResult}");
             
             if (validationResult == "Valid")
             {
@@ -423,6 +496,8 @@ namespace CardGames
                 return;
             }
 
+            DebugLog($"CardClicked on {DescribeControl(sourceControl)} -> {DescribeCard(clickedCard)}");
+
             // Try to find an available foundation pile for this card
             int foundationIndex = solitaireRules.FindAvailableFoundationPile(clickedCard);
             if (foundationIndex >= 0)
@@ -453,6 +528,8 @@ namespace CardGames
         /// </summary>
         private void ExecuteMove(CardUserControl sourceControl, CardUserControl targetControl, Card card)
         {
+            DebugLog($"ExecuteMove: {DescribeCard(card)} from {DescribeControl(sourceControl)} to {DescribeControl(targetControl)}");
+
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
             {
@@ -669,10 +746,11 @@ namespace CardGames
             }
             
             // Check if removing from waste pile
-            if (sourceControl == WastePile)
+            if (ReferenceEquals(sourceControl, WastePile))
             {
                 if (solitaireRules.WastePile.Count > 0 && solitaireRules.WastePile[solitaireRules.WastePile.Count - 1] == card)
                 {
+                    DebugLog($"Removing from Waste -> {DescribeCard(card)}");
                     solitaireRules.WastePile.RemoveAt(solitaireRules.WastePile.Count - 1);
                     UpdateWastePile();
                 }
@@ -732,12 +810,16 @@ namespace CardGames
             {
                 return "No card to move";
             }
+
+            DebugLog($"ValidateMoveDetailed: source={DescribeControl(dragSourceControl)}, target={DescribeControl(targetControl)}, card={DescribeCard(card)}");
             
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
             {
                 int foundationIndex = foundationControls.IndexOf(targetControl);
-                if (solitaireRules.CanPlaceCardOnFoundation(card, foundationIndex))
+                bool canPlaceFoundation = solitaireRules.CanPlaceCardOnFoundation(card, foundationIndex);
+                DebugLog($" -> Foundation[{foundationIndex}] canPlace={canPlaceFoundation}");
+                if (canPlaceFoundation)
                 {
                     return "Valid";
                 }
@@ -752,21 +834,27 @@ namespace CardGames
             if (targetColumnIndex >= 0)
             {
                 // This is a tableau move - use SolitaireRules validation
-                if (solitaireRules.CanPlaceCardOnTableau(card, targetColumnIndex))
+                bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, targetColumnIndex);
+                // Gather current top card info
+                List<Card> columnCards = solitaireRules.TableauColumns[targetColumnIndex];
+                Card top = columnCards.Count > 0 ? columnCards[columnCards.Count - 1] : null;
+                bool rankOk = top == null ? (card.Number == Card.CardNumber.K) : IsOneRankLower(card.Number, top.Number);
+                bool colorOk = top == null ? true : IsOppositeColor(card, top);
+                DebugLog($" -> Tableau[{targetColumnIndex}] top={DescribeCard(top)} canPlace={canPlace} rankOk={rankOk} colorOk={colorOk}");
+                if (canPlace)
                 {
                     return "Valid";
                 }
                 else
                 {
                     // Provide specific error message for empty vs non-empty tableau columns
-                    if (solitaireRules.TableauColumns[targetColumnIndex].Count == 0)
+                    if (columnCards.Count == 0)
                     {
                         return "Only Kings can be placed on empty tableau spaces";
                     }
                     else
                     {
-                        Card topCard = solitaireRules.TableauColumns[targetColumnIndex][solitaireRules.TableauColumns[targetColumnIndex].Count - 1];
-                        return $"{card.Number} cannot be placed on {topCard.Number} - must be one rank lower and opposite color";
+                        return $"{card.Number} cannot be placed on {top.Number} - must be one rank lower and opposite color";
                     }
                 }
             }
@@ -775,11 +863,13 @@ namespace CardGames
             if (targetControl.Card == null)
             {
                 // This is not a tableau move to an empty space
+                DebugLog(" -> Target is empty, but not a tableau slot. Rejecting.");
                 return "Cannot place cards on this empty space";
             }
             
             // If we reach here, it's a move to a non-tableau target with an existing card
             // This shouldn't happen in normal Solitaire gameplay
+            DebugLog(" -> Target is non-tableau with existing card. Rejecting.");
             return "Invalid move - cannot place card here";
         }
 
