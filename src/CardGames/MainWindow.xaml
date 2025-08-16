@@ -36,11 +36,12 @@
                    FontSize="10" HorizontalAlignment="Center" Width="90"/>
             
             <!-- Foundation Piles (top-right area, 4 horizontal) -->
+            <!-- Order must match Card.CardSuite enum: Heart(0), Club(1), Diamond(2), Spade(3) -->
             <Border Canvas.Left="750" Canvas.Top="20" Width="90" Height="130" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <local:CardUserControl x:Name="Foundation1"/>
-                    <Label Content="♠" Foreground="Black" FontSize="14" HorizontalAlignment="Center" Margin="0,-20,0,0"/>
+                    <Label Content="♥" Foreground="Red" FontSize="14" HorizontalAlignment="Center" Margin="0,-20,0,0"/>
                 </StackPanel>
             </Border>
             
@@ -48,7 +49,7 @@
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <local:CardUserControl x:Name="Foundation2"/>
-                    <Label Content="♥" Foreground="Red" FontSize="14" HorizontalAlignment="Center" Margin="0,-20,0,0"/>
+                    <Label Content="♣" Foreground="Black" FontSize="14" HorizontalAlignment="Center" Margin="0,-20,0,0"/>
                 </StackPanel>
             </Border>
             
@@ -64,7 +65,7 @@
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
                 <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
                     <local:CardUserControl x:Name="Foundation4"/>
-                    <Label Content="♣" Foreground="Black" FontSize="14" HorizontalAlignment="Center" Margin="0,-20,0,0"/>
+                    <Label Content="♠" Foreground="Black" FontSize="14" HorizontalAlignment="Center" Margin="0,-20,0,0"/>
                 </StackPanel>
             </Border>
             
