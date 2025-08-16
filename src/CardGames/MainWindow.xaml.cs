@@ -1,18 +1,8 @@
 ﻿using CardGames.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace CardGames
 {
@@ -65,7 +55,7 @@ namespace CardGames
             for (int i = 0; i < 7; i++)
             {
                 tableauFaceUpStates.Add(new List<bool>());
-                // Initialize with enough slots for maximum possible cards in each column
+                // Initialize with enough slots for maximum possible cards initially (based on UI controls)
                 for (int j = 0; j < tableauControls[i].Count; j++)
                 {
                     tableauFaceUpStates[i].Add(false);
@@ -78,26 +68,26 @@ namespace CardGames
             StartNewGame();
         }
 
-        
         /// <summary>
-        /// Wire up drag and drop events for all card controls
+        /// Wire up drag/drop and click events for all card controls
         /// </summary>
         private void SetupCardEvents()
         {
-            // Setup events for stock and waste piles
+            // Stock pile
             StockPile.CardDragStarted += OnCardDragStarted;
             StockPile.CardDropped += OnCardDropped;
             StockPile.ValidateDrop += OnValidateDrop;
             StockPile.CardClicked += OnCardClicked;
             StockPile.IsStockPile = true;
             StockPile.StockPileClicked += OnStockPileClicked;
-            
+
+            // Waste pile
             WastePile.CardDragStarted += OnCardDragStarted;
             WastePile.CardDropped += OnCardDropped;
             WastePile.ValidateDrop += OnValidateDrop;
             WastePile.CardClicked += OnCardClicked;
-            
-            // Setup events for foundation piles
+
+            // Foundations
             foreach (CardUserControl foundation in foundationControls)
             {
                 foundation.CardDragStarted += OnCardDragStarted;
@@ -105,17 +95,35 @@ namespace CardGames
                 foundation.ValidateDrop += OnValidateDrop;
                 foundation.CardClicked += OnCardClicked;
             }
-            
-            // Setup events for tableau controls
+
+            // Tableau columns
             foreach (List<CardUserControl> column in tableauControls)
             {
-                foreach (CardUserControl card in column)
+                foreach (CardUserControl control in column)
                 {
-                    card.CardDragStarted += OnCardDragStarted;
-                    card.CardDropped += OnCardDropped;
-                    card.ValidateDrop += OnValidateDrop;
-                    card.CardClicked += OnCardClicked;
+                    control.CardDragStarted += OnCardDragStarted;
+                    control.CardDropped += OnCardDropped;
+                    control.ValidateDrop += OnValidateDrop;
+                    control.CardClicked += OnCardClicked;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Ensures the face-up state list for a column has at least the specified capacity.
+        /// Adds entries initialized to false as needed.
+        /// </summary>
+        private void EnsureFaceUpStateCapacity(int columnIndex, int requiredCount)
+        {
+            if (columnIndex < 0 || columnIndex >= tableauFaceUpStates.Count)
+            {
+                return;
+            }
+
+            List<bool> states = tableauFaceUpStates[columnIndex];
+            while (states.Count < requiredCount)
+            {
+                states.Add(false);
             }
         }
 
@@ -151,6 +159,9 @@ namespace CardGames
                 List<Card> columnCards = solitaireRules.TableauColumns[col];
                 List<bool> columnFaceUpStates = tableauFaceUpStates[col];
                 
+                // Ensure the face-up states list can represent all cards in the column
+                EnsureFaceUpStateCapacity(col, columnCards.Count);
+
                 // Reset all states to false first
                 for (int row = 0; row < columnFaceUpStates.Count; row++)
                 {
@@ -286,6 +297,9 @@ namespace CardGames
             {
                 List<Card> columnCards = solitaireRules.TableauColumns[col];
                 List<CardUserControl> columnControls = tableauControls[col];
+
+                // Ensure states list can represent all current cards
+                EnsureFaceUpStateCapacity(col, columnCards.Count);
                 
                 for (int row = 0; row < columnControls.Count; row++)
                 {
@@ -294,7 +308,8 @@ namespace CardGames
                         Card card = columnCards[row];
                         columnControls[row].SetupCard(card);
                         // Use the tracked face-up state
-                        columnControls[row].IsFaceUp = tableauFaceUpStates[col][row];
+                        bool faceUp = row < tableauFaceUpStates[col].Count ? tableauFaceUpStates[col][row] : (row == columnCards.Count - 1);
+                        columnControls[row].IsFaceUp = faceUp;
                         columnControls[row].Visibility = Visibility.Visible;
                     }
                     else
@@ -466,6 +481,7 @@ namespace CardGames
                 
                 // Update face-up state tracking - newly added card should be face-up
                 int newCardPosition = solitaireRules.TableauColumns[targetColumnIndex].Count - 1;
+                EnsureFaceUpStateCapacity(targetColumnIndex, newCardPosition + 1);
                 tableauFaceUpStates[targetColumnIndex][newCardPosition] = true;
                 
                 // Refresh the display for the target column to show proper stacking
@@ -507,6 +523,7 @@ namespace CardGames
                         
                         // Update face-up state tracking - newly added card should be face-up
                         int newCardPosition = solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Count - 1;
+                        EnsureFaceUpStateCapacity(targetColumnIndexForExistingCard, newCardPosition + 1);
                         tableauFaceUpStates[targetColumnIndexForExistingCard][newCardPosition] = true;
                         
                         // Refresh the display for the target column to show proper stacking
@@ -617,6 +634,7 @@ namespace CardGames
                     if (sourceColumn.Count > 0)
                     {
                         // Update the face-up state tracking - newly exposed card becomes face-up
+                        EnsureFaceUpStateCapacity(sourceColumnIndex, sourceColumn.Count);
                         tableauFaceUpStates[sourceColumnIndex][sourceColumn.Count - 1] = true;
                         
                         // The newly exposed card should be face-up
@@ -678,6 +696,9 @@ namespace CardGames
             
             List<Card> columnCards = solitaireRules.TableauColumns[columnIndex];
             List<CardUserControl> columnControls = tableauControls[columnIndex];
+
+            // Ensure states list can represent all current cards
+            EnsureFaceUpStateCapacity(columnIndex, columnCards.Count);
             
             for (int row = 0; row < columnControls.Count; row++)
             {
@@ -685,8 +706,9 @@ namespace CardGames
                 {
                     Card card = columnCards[row];
                     columnControls[row].SetupCard(card);
-                    // Use the tracked face-up state instead of just the last card
-                    columnControls[row].IsFaceUp = tableauFaceUpStates[columnIndex][row];
+                    // Only the cards with face-up state true should be visible face-up
+                    bool faceUp = row < tableauFaceUpStates[columnIndex].Count ? tableauFaceUpStates[columnIndex][row] : (row == columnCards.Count - 1);
+                    columnControls[row].IsFaceUp = faceUp;
                     columnControls[row].Visibility = Visibility.Visible;
                     
                     // Set proper positioning for partial stacking using TableauVerticalOffset
