@@ -688,6 +688,9 @@ namespace CardGames
                     // Use the tracked face-up state instead of just the last card
                     columnControls[row].IsFaceUp = tableauFaceUpStates[columnIndex][row];
                     columnControls[row].Visibility = Visibility.Visible;
+                    
+                    // Set proper positioning for partial stacking using TableauVerticalOffset
+                    Canvas.SetTop(columnControls[row], row * CardVisualConstants.TableauVerticalOffset);
                 }
                 else
                 {
