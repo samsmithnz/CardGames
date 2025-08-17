@@ -131,6 +131,9 @@ namespace CardGames.WinForms
                 IsFaceUp = true
             };
             wastePileControl.CardDragStarted += WastePile_CardDragStarted;
+            wastePileControl.CardClicked += WastePile_CardClicked;
+            wastePileControl.CardDropped += WastePile_CardDropped;
+            wastePileControl.ValidateDrop += WastePile_ValidateDrop;
             gamePanel.Controls.Add(wastePileControl);
 
             Label wasteLabel = new Label
@@ -159,6 +162,7 @@ namespace CardGames.WinForms
                 };
                 foundationControl.CardDropped += Foundation_CardDropped;
                 foundationControl.ValidateDrop += Foundation_ValidateDrop;
+                foundationControl.CardClicked += Foundation_CardClicked;
                 foundationControls.Add(foundationControl);
                 gamePanel.Controls.Add(foundationControl);
 
@@ -343,7 +347,9 @@ namespace CardGames.WinForms
             }
             else
             {
-                wastePileControl.Visible = false;
+                wastePileControl.Card = null;
+                wastePileControl.IsFaceUp = false;
+                wastePileControl.Visible = true; // Keep visible for game interaction
             }
         }
 
@@ -362,7 +368,9 @@ namespace CardGames.WinForms
                 }
                 else
                 {
-                    foundationControls[i].Visible = false;
+                    foundationControls[i].Card = null;
+                    foundationControls[i].IsFaceUp = false;
+                    foundationControls[i].Visible = true; // Keep visible to accept drops
                 }
             }
         }
@@ -443,6 +451,19 @@ namespace CardGames.WinForms
         private void WastePile_CardDragStarted(object sender, Card card)
         {
             // Waste pile card is being dragged
+            statusLabel.Text = $"Dragging {card.Number} of {card.Suite}s from waste pile";
+        }
+
+        private void WastePile_CardDropped(object sender, CardDropEventArgs e)
+        {
+            // Cards can't normally be dropped on waste pile in Solitaire
+            statusLabel.Text = "Cannot drop cards on waste pile";
+        }
+
+        private void WastePile_ValidateDrop(object sender, ValidateDropEventArgs e)
+        {
+            // Cards can't normally be dropped on waste pile in Solitaire
+            e.IsValid = false;
         }
 
         private void Foundation_CardDropped(object sender, CardDropEventArgs e)
@@ -451,10 +472,7 @@ namespace CardGames.WinForms
             int foundationIndex = foundationControls.IndexOf(e.TargetControl);
             if (foundationIndex >= 0)
             {
-                // Try to move card to foundation
-                // This would need more complex logic to handle different source locations
-                statusLabel.Text = $"Card dropped on foundation {foundationIndex + 1}";
-                UpdateAllUI();
+                ExecuteMove(e.SourceCard, e.TargetControl, foundationIndex);
             }
         }
 
@@ -464,8 +482,7 @@ namespace CardGames.WinForms
             int foundationIndex = foundationControls.IndexOf(e.TargetControl);
             if (foundationIndex >= 0)
             {
-                // Simple validation - would need more logic for actual game rules
-                e.IsValid = true; // Placeholder
+                e.IsValid = solitaireRules.CanPlaceCardOnFoundation(e.SourceCard, foundationIndex);
             }
         }
 
@@ -477,14 +494,21 @@ namespace CardGames.WinForms
         private void Tableau_CardDropped(object sender, CardDropEventArgs e)
         {
             // Handle card dropped on tableau
-            statusLabel.Text = "Card dropped on tableau";
-            UpdateAllUI();
+            int targetColumnIndex = GetTableauColumnIndex(e.TargetControl);
+            if (targetColumnIndex >= 0)
+            {
+                ExecuteMove(e.SourceCard, e.TargetControl, targetColumnIndex);
+            }
         }
 
         private void Tableau_ValidateDrop(object sender, ValidateDropEventArgs e)
         {
             // Validate if card can be dropped on tableau
-            e.IsValid = true; // Placeholder
+            int targetColumnIndex = GetTableauColumnIndex(e.TargetControl);
+            if (targetColumnIndex >= 0)
+            {
+                e.IsValid = solitaireRules.CanPlaceCardOnTableau(e.SourceCard, targetColumnIndex);
+            }
         }
 
         private void Tableau_CardClicked(object sender, Card card)
@@ -521,9 +545,188 @@ namespace CardGames.WinForms
                 }
                 else
                 {
-                    statusLabel.Text = $"Clicked {card.Number} of {card.Suite}s";
+                    // Try to auto-move to foundation if card is face up and at the top of its column
+                    if (rowIndex == solitaireRules.TableauColumns[colIndex].Count - 1)
+                    {
+                        int foundationIndex = solitaireRules.FindAvailableFoundationPile(card);
+                        if (foundationIndex >= 0)
+                        {
+                            // Execute the move to foundation
+                            CardUserControl sourceControl = (CardUserControl)sender;
+                            CardUserControl targetControl = foundationControls[foundationIndex];
+                            ExecuteMove(card, targetControl, foundationIndex);
+                        }
+                        else
+                        {
+                            statusLabel.Text = $"{card.Number} of {card.Suite}s cannot be moved to foundation";
+                        }
+                    }
+                    else
+                    {
+                        statusLabel.Text = $"Clicked {card.Number} of {card.Suite}s";
+                    }
                 }
             }
+        }
+
+        /// <summary>
+        /// Handle foundation card clicked - for future functionality
+        /// </summary>
+        private void Foundation_CardClicked(object sender, Card card)
+        {
+            // Foundation cards are generally not moved once placed
+            // This could be used for other functionality in the future
+            statusLabel.Text = $"Clicked {card.Number} of {card.Suite}s on foundation";
+        }
+
+        /// <summary>
+        /// Handle waste pile card clicked - try to auto-move to foundation
+        /// </summary>
+        private void WastePile_CardClicked(object sender, Card card)
+        {
+            if (card != null && solitaireRules.WastePile.Count > 0 && card.Equals(solitaireRules.WastePile[solitaireRules.WastePile.Count - 1]))
+            {
+                int foundationIndex = solitaireRules.FindAvailableFoundationPile(card);
+                if (foundationIndex >= 0)
+                {
+                    CardUserControl targetControl = foundationControls[foundationIndex];
+                    ExecuteMove(card, targetControl, foundationIndex);
+                }
+                else
+                {
+                    statusLabel.Text = $"{card.Number} of {card.Suite}s cannot be moved to foundation";
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execute a move between card piles
+        /// </summary>
+        private void ExecuteMove(Card card, CardUserControl targetControl, int targetIndex)
+        {
+            CardUserControl sourceControl = FindSourceControl(card);
+            if (sourceControl == null)
+            {
+                statusLabel.Text = "Cannot find source of card";
+                return;
+            }
+
+            // Determine source pile type and remove card
+            bool cardRemoved = false;
+            
+            // Check if source is waste pile
+            if (sourceControl == wastePileControl && solitaireRules.WastePile.Count > 0 && 
+                card.Equals(solitaireRules.WastePile[solitaireRules.WastePile.Count - 1]))
+            {
+                solitaireRules.WastePile.RemoveAt(solitaireRules.WastePile.Count - 1);
+                cardRemoved = true;
+            }
+            
+            // Check if source is tableau
+            int sourceTableauColumn = GetTableauColumnIndex(sourceControl);
+            if (sourceTableauColumn >= 0)
+            {
+                List<Card> column = solitaireRules.TableauColumns[sourceTableauColumn];
+                if (column.Count > 0 && card.Equals(column[column.Count - 1]))
+                {
+                    column.RemoveAt(column.Count - 1);
+                    
+                    // Remove face-up state
+                    if (tableauFaceUpStates[sourceTableauColumn].Count > 0)
+                    {
+                        tableauFaceUpStates[sourceTableauColumn].RemoveAt(tableauFaceUpStates[sourceTableauColumn].Count - 1);
+                    }
+                    
+                    // If there are remaining cards and the top one is face down, flip it
+                    if (column.Count > 0 && tableauFaceUpStates[sourceTableauColumn].Count > 0 && 
+                        !tableauFaceUpStates[sourceTableauColumn][tableauFaceUpStates[sourceTableauColumn].Count - 1])
+                    {
+                        tableauFaceUpStates[sourceTableauColumn][tableauFaceUpStates[sourceTableauColumn].Count - 1] = true;
+                    }
+                    
+                    cardRemoved = true;
+                }
+            }
+
+            if (!cardRemoved)
+            {
+                statusLabel.Text = "Cannot remove card from source";
+                return;
+            }
+
+            // Add card to destination
+            if (foundationControls.Contains(targetControl))
+            {
+                // Moving to foundation
+                solitaireRules.FoundationPiles[targetIndex].Add(card);
+                statusLabel.Text = $"Moved {card.Number} of {card.Suite}s to foundation";
+                
+                // Check for win condition
+                if (solitaireRules.IsGameWon())
+                {
+                    statusLabel.Text = "Congratulations! You won the game!";
+                }
+            }
+            else
+            {
+                // Moving to tableau
+                solitaireRules.TableauColumns[targetIndex].Add(card);
+                tableauFaceUpStates[targetIndex].Add(true); // Cards moved to tableau are always face up
+                statusLabel.Text = $"Moved {card.Number} of {card.Suite}s to tableau";
+            }
+
+            // Update all UI
+            UpdateAllUI();
+        }
+
+        /// <summary>
+        /// Find the source control for a given card
+        /// </summary>
+        private CardUserControl FindSourceControl(Card card)
+        {
+            // Check waste pile
+            if (solitaireRules.WastePile.Count > 0 && card.Equals(solitaireRules.WastePile[solitaireRules.WastePile.Count - 1]))
+            {
+                return wastePileControl;
+            }
+
+            // Check tableau columns
+            for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
+            {
+                List<Card> column = solitaireRules.TableauColumns[col];
+                if (column.Count > 0 && card.Equals(column[column.Count - 1]))
+                {
+                    // Find the control for the top card in this column
+                    if (col < tableauControls.Count)
+                    {
+                        List<CardUserControl> controls = tableauControls[col];
+                        for (int row = controls.Count - 1; row >= 0; row--)
+                        {
+                            if (controls[row].Visible && controls[row].Card != null && controls[row].Card.Equals(card))
+                            {
+                                return controls[row];
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Get the tableau column index for a given CardUserControl
+        /// </summary>
+        private int GetTableauColumnIndex(CardUserControl control)
+        {
+            for (int col = 0; col < tableauControls.Count; col++)
+            {
+                if (tableauControls[col].Contains(control))
+                {
+                    return col;
+                }
+            }
+            return -1;
         }
 
         #endregion
