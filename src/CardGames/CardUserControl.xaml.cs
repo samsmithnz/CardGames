@@ -208,9 +208,10 @@ namespace CardGames
         {
             if (IsDebugMode && Card != null)
             {
-                // Add debug border to show actual clickable boundaries (not full card)
-                this.BorderBrush = new SolidColorBrush(Colors.Yellow);
-                this.BorderThickness = new Thickness(1);
+                // Set up debug border rectangle to show actual clickable boundaries
+                DebugBorder.Width = CardGames.Core.CardVisualConstants.CardWidth;
+                DebugBorder.Height = VisibleHeight;
+                DebugBorder.Visibility = Visibility.Visible;
                 
                 // Add debug background to show draggable state, but only in visible area
                 if (IsFaceUp)
@@ -242,8 +243,7 @@ namespace CardGames
             {
                 // Clear debug visuals when debug mode is off
                 this.Background = Brushes.Transparent;
-                this.BorderBrush = null;
-                this.BorderThickness = new Thickness(0);
+                DebugBorder.Visibility = Visibility.Collapsed;
                 this.Clip = null;
             }
         }

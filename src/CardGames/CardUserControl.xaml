@@ -69,5 +69,14 @@
                    VerticalAlignment="Bottom"
                    Fill="Transparent"
                    Visibility="Collapsed"/>
+        
+        <!-- Debug border rectangle to show actual hit area -->
+        <Rectangle x:Name="DebugBorder"
+                   Stroke="Yellow"
+                   StrokeThickness="2"
+                   Fill="Transparent"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Visibility="Collapsed"/>
     </Grid>
 </UserControl>
