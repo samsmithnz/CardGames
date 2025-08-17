@@ -20,19 +20,20 @@
             <!-- Stock Pile (top-left corner) -->
             <Border Canvas.Left="20" Canvas.Top="20" Width="90" Height="130" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
-                <local:CardUserControl x:Name="StockPile" 
-                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Grid>
+                    <local:CardUserControl x:Name="StockPile" 
+                                         HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <!-- Recycle Button (appears when stock is empty and waste has cards) -->
+                    <Button x:Name="RecycleButton" Canvas.Left="25" Canvas.Top="175" Width="80" Height="25"
+                        Content="🔄 Recycle" FontSize="9" Padding="2" 
+                        Background="DarkOrange" Foreground="White" BorderBrush="Orange"
+                        Visibility="Collapsed" Click="RecycleButton_Click"
+                        ToolTip="Click to move all waste cards back to stock pile"/>
+                </Grid>
             </Border>
             <Label Canvas.Left="20" Canvas.Top="155" Content="Stock" Foreground="White" 
                    FontSize="10" HorizontalAlignment="Center" Width="90"/>
-            
-            <!-- Recycle Button (appears when stock is empty and waste has cards) -->
-            <Button x:Name="RecycleButton" Canvas.Left="25" Canvas.Top="175" Width="80" Height="25"
-                    Content="🔄 Recycle" FontSize="9" Padding="2" 
-                    Background="DarkOrange" Foreground="White" BorderBrush="Orange"
-                    Visibility="Collapsed" Click="RecycleButton_Click"
-                    ToolTip="Click to move all waste cards back to stock pile"/>
-            
+
             <!-- Waste Pile (next to stock) -->
             <Border Canvas.Left="130" Canvas.Top="20" Width="90" Height="130" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5">
