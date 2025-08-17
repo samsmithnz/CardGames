@@ -7,7 +7,7 @@ namespace CardGames.Tests
     public class RecycleButtonTests
     {
         [TestMethod]
-        public void RecycleButton_ShouldBeVisible_WhenStockEmptyAndWasteHasCards()
+        public void RecycleButton_ShouldBeVisible_WhenAllCardsInWaste()
         {
             // Arrange
             SolitaireRules rules = new SolitaireRules();
@@ -22,11 +22,11 @@ namespace CardGames.Tests
             
             // Assert conditions for button visibility
             Assert.AreEqual(0, rules.StockPile.Count, "Stock should be empty");
-            Assert.IsTrue(rules.WastePile.Count > 0, "Waste should have cards");
+            Assert.AreEqual(24, rules.WastePile.Count, "Waste should have all 24 stock cards");
             
-            // The UI should show the recycle button in this state
-            bool shouldShowRecycleButton = (rules.StockPile.Count == 0 && rules.WastePile.Count > 0);
-            Assert.IsTrue(shouldShowRecycleButton, "Recycle button should be visible when stock is empty and waste has cards");
+            // The UI should show the recycle button when all cards are in waste
+            bool shouldShowRecycleButton = (rules.WastePile.Count == 24);
+            Assert.IsTrue(shouldShowRecycleButton, "Recycle button should be visible when all cards are in waste");
         }
         
         [TestMethod]
@@ -37,12 +37,13 @@ namespace CardGames.Tests
             Deck deck = new Deck();
             rules.DealCards(deck);
             
-            // Assert initial state - stock has cards
+            // Assert initial state - stock has cards, waste has fewer than 24 cards
             Assert.IsTrue(rules.StockPile.Count > 0, "Stock should have cards");
+            Assert.IsTrue(rules.WastePile.Count < 24, "Waste should have fewer than 24 cards");
             
             // The UI should hide the recycle button in this state
-            bool shouldHideRecycleButton = (rules.StockPile.Count > 0);
-            Assert.IsTrue(shouldHideRecycleButton, "Recycle button should be hidden when stock has cards");
+            bool shouldHideRecycleButton = (rules.WastePile.Count != 24);
+            Assert.IsTrue(shouldHideRecycleButton, "Recycle button should be hidden when waste doesn't have all cards");
         }
         
         [TestMethod]
@@ -57,8 +58,8 @@ namespace CardGames.Tests
             Assert.AreEqual(0, rules.WastePile.Count, "Waste should be empty");
             
             // The UI should hide the recycle button in this state
-            bool shouldHideRecycleButton = (rules.StockPile.Count == 0 && rules.WastePile.Count == 0);
-            Assert.IsTrue(shouldHideRecycleButton, "Recycle button should be hidden when both piles are empty");
+            bool shouldHideRecycleButton = (rules.WastePile.Count != 24);
+            Assert.IsTrue(shouldHideRecycleButton, "Recycle button should be hidden when waste is empty");
         }
         
         [TestMethod]
@@ -99,21 +100,21 @@ namespace CardGames.Tests
             Deck deck = new Deck();
             rules.DealCards(deck);
             
-            // Initial state - stock has cards, button should be hidden
-            bool initialButtonHidden = (rules.StockPile.Count > 0);
+            // Initial state - waste doesn't have all cards, button should be hidden
+            bool initialButtonHidden = (rules.WastePile.Count != 24);
             Assert.IsTrue(initialButtonHidden, "Initially, recycle button should be hidden");
             
-            // Draw all cards - button should become visible
+            // Draw all cards - button should become visible when waste has all 24 cards
             while (rules.StockPile.Count > 0)
             {
                 rules.DrawFromStock();
             }
-            bool buttonVisibleAfterDraw = (rules.StockPile.Count == 0 && rules.WastePile.Count > 0);
-            Assert.IsTrue(buttonVisibleAfterDraw, "After emptying stock, recycle button should be visible");
+            bool buttonVisibleAfterDraw = (rules.WastePile.Count == 24);
+            Assert.IsTrue(buttonVisibleAfterDraw, "After drawing all cards, recycle button should be visible");
             
             // Reset stock - button should become hidden again
             rules.ResetStock();
-            bool buttonHiddenAfterReset = (rules.StockPile.Count > 0);
+            bool buttonHiddenAfterReset = (rules.WastePile.Count != 24);
             Assert.IsTrue(buttonHiddenAfterReset, "After resetting stock, recycle button should be hidden again");
         }
     }

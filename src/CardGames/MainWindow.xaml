@@ -26,8 +26,8 @@
             <Label Canvas.Left="20" Canvas.Top="155" Content="Stock" Foreground="White" 
                    FontSize="10" HorizontalAlignment="Center" Width="90"/>
             
-            <!-- Recycle Button (appears when stock is empty and waste has cards) -->
-            <Button x:Name="RecycleButton" Canvas.Left="25" Canvas.Top="175" Width="80" Height="25"
+            <!-- Recycle Button (appears when all cards are in the waste pile) -->
+            <Button x:Name="RecycleButton" Canvas.Left="75" Canvas.Top="75" Width="80" Height="25"
                     Content="🔄 Recycle" FontSize="9" Padding="2" 
                     Background="DarkOrange" Foreground="White" BorderBrush="Orange"
                     Visibility="Collapsed" Click="RecycleButton_Click"

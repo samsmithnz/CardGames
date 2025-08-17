@@ -443,12 +443,13 @@ namespace CardGames
         }
 
         /// <summary>
-        /// Update the visibility of the recycle button based on stock and waste pile states
+        /// Update the visibility of the recycle button based on waste pile state
         /// </summary>
         private void UpdateRecycleButtonVisibility()
         {
-            // Show recycle button when stock is empty and waste has cards
-            if (solitaireRules.StockPile.Count == 0 && solitaireRules.WastePile.Count > 0)
+            // Show recycle button when all cards from stock are in the waste pile (24 cards)
+            // This happens when all non-tableau cards have been drawn from stock to waste
+            if (solitaireRules.WastePile.Count == 24)
             {
                 RecycleButton.Visibility = Visibility.Visible;
             }
