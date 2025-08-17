@@ -15,7 +15,10 @@
              DragOver="CardUserControl_DragOver"
              DragLeave="CardUserControl_DragLeave"
              Drop="CardUserControl_Drop">
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+          MouseLeftButtonDown="PicBack_MouseDown"
+          MouseMove="PicBack_MouseMove"
+          MouseLeftButtonUp="PicBack_MouseUp">
         <!-- Back image (face-down) -->
         <Image x:Name="PicBack"
                Source="Images/cardback1.jpg"

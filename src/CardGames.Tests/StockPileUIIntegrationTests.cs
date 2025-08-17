@@ -27,8 +27,8 @@ namespace CardGames.Tests
             Assert.IsTrue(rules.WastePile.Count > 0, "Waste should have cards");
             
             // Act - Simulate the UI update behavior for empty stock pile
-            // Before fix: UpdateVisibility() would hide both images when Card = null
-            // After fix: UpdateVisibility() keeps PicBack visible for stock pile when empty
+            // After fix: UpdateVisibility() hides both images when Card = null to show empty spot
+            // Stock pile remains clickable through Grid element
             
             bool stockPileWouldBeClickable = true; // With our fix, stock pile remains clickable
             
