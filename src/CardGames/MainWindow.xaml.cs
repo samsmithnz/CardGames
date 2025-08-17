@@ -841,6 +841,7 @@ namespace CardGames
                     Card card = columnCards[row];
                     CardUserControl control = columnControls[row];
                     control.SetupCard(card);
+                    control.IsTableauDropTarget = false; // Clear drop target flag when card is present
                     bool faceUp = row < tableauFaceUpStates[columnIndex].Count ? tableauFaceUpStates[columnIndex][row] : (row == columnCards.Count - 1);
                     control.IsFaceUp = faceUp;
                     control.Visibility = Visibility.Visible;
@@ -858,6 +859,7 @@ namespace CardGames
                         CardUserControl control = columnControls[row];
                         control.Card = null;
                         control.IsFaceUp = false;
+                        control.IsTableauDropTarget = true; // Mark as drop target for visual styling
                         control.Visibility = Visibility.Visible; // keep visible to accept drops
                         Canvas.SetTop(control, 0);
                         Panel.SetZIndex(control, 0);
@@ -866,6 +868,7 @@ namespace CardGames
                     else
                     {
                         columnControls[row].Card = null;
+                        columnControls[row].IsTableauDropTarget = false; // Clear drop target flag
                         columnControls[row].Visibility = Visibility.Hidden;
                         DebugLog($"  Control[{row}] = hidden (no card)");
                     }

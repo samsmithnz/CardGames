@@ -61,6 +61,11 @@ namespace CardGames
         /// </summary>
         public bool IsStockPile { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether this is a tableau drop target for empty columns
+        /// </summary>
+        public bool IsTableauDropTarget { get; set; }
+
         public CardUserControl()
         {
             InitializeComponent();
@@ -113,6 +118,21 @@ namespace CardGames
                 // The stock pile remains clickable through the underlying Grid element
                 PicBack.Visibility = Visibility.Hidden;
                 PicCard.Visibility = Visibility.Hidden;
+                
+                // For empty tableau drop targets, show a subtle background to indicate droppable area
+                // This helps users see where they can drop Kings on empty tableau columns
+                if (IsTableauDropTarget)
+                {
+                    this.Background = new SolidColorBrush(Color.FromArgb(30, 255, 255, 255)); // Very light semi-transparent white
+                    this.BorderBrush = new SolidColorBrush(Color.FromArgb(60, 255, 255, 255)); // Slightly more visible border
+                    this.BorderThickness = new Thickness(1);
+                }
+                else
+                {
+                    this.Background = Brushes.Transparent;
+                    this.BorderBrush = null;
+                    this.BorderThickness = new Thickness(0);
+                }
             }
             else if (_cardVisible == true)
             {
