@@ -4,6 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>playingcards.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,6 +18,10 @@
 
   <ItemGroup>
     <Resource Include="Images\**\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="playingcards.ico" />
   </ItemGroup>
 
 </Project>
