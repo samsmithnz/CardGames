@@ -1168,8 +1168,8 @@ namespace CardGames
             {
                 List<Card> sourceColumn = solitaireRules.TableauColumns[sourceColumnIndex];
                 
-                // Remove the cards from the end of the column
-                for (int i = 0; i < cardsToRemove.Count; i++)
+                // Remove the cards from the end of the column (top-down) to maintain order
+                for (int i = cardsToRemove.Count - 1; i >= 0; i--)
                 {
                     if (sourceColumn.Count > 0 && sourceColumn[sourceColumn.Count - 1] == cardsToRemove[i])
                     {
