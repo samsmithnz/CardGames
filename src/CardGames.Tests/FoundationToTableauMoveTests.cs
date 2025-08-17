@@ -101,5 +101,57 @@ namespace CardGames.Tests
             // Assert
             Assert.IsFalse(canPlace, "Queen of hearts from foundation should not be able to be placed on empty tableau column - only Kings allowed");
         }
+        
+        /// <summary>
+        /// Test the complete foundation to tableau move workflow by simulating the actual sequence
+        /// </summary>
+        [TestMethod]
+        public void FoundationToTableauMove_CompleteWorkflow_ShouldSucceed()
+        {
+            // Arrange
+            SolitaireRules rules = new SolitaireRules();
+            
+            // Set up a foundation pile with Ace and 2 of hearts
+            Card aceOfHearts = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Heart };
+            Card twoOfHearts = new Card { Number = Card.CardNumber._2, Suite = Card.CardSuite.Heart };
+            rules.FoundationPiles[0].Add(aceOfHearts);
+            rules.FoundationPiles[0].Add(twoOfHearts);
+            
+            // Set up a tableau column with 3 of spades (can accept 2 of hearts)
+            Card threeOfSpades = new Card { Number = Card.CardNumber._3, Suite = Card.CardSuite.Spade };
+            rules.TableauColumns[1].Add(threeOfSpades);
+            
+            // Initial counts
+            int initialFoundationCount = rules.FoundationPiles[0].Count;
+            int initialTableauCount = rules.TableauColumns[1].Count;
+            
+            // Act - Simulate the move workflow
+            
+            // 1. Validate the move (this should be what ValidateMoveDetailed does)
+            bool canPlace = rules.CanPlaceCardOnTableau(twoOfHearts, 1);
+            Assert.IsTrue(canPlace, "2 of hearts should be valid to place on 3 of spades");
+            
+            // 2. Remove from source (foundation)
+            rules.FoundationPiles[0].RemoveAt(rules.FoundationPiles[0].Count - 1);
+            
+            // 3. Add to target (tableau)
+            rules.TableauColumns[1].Add(twoOfHearts);
+            
+            // Assert - Verify the move completed successfully
+            Assert.AreEqual(initialFoundationCount - 1, rules.FoundationPiles[0].Count, 
+                "Foundation should have one less card");
+            Assert.AreEqual(initialTableauCount + 1, rules.TableauColumns[1].Count, 
+                "Tableau should have one more card");
+            
+            // Verify the foundation pile now shows the ace on top
+            Assert.AreEqual(aceOfHearts, rules.FoundationPiles[0][rules.FoundationPiles[0].Count - 1], 
+                "Ace of hearts should now be on top of foundation pile");
+            
+            // Verify the tableau has both cards in correct order
+            Assert.AreEqual(threeOfSpades, rules.TableauColumns[1][0], 
+                "3 of spades should be at bottom of tableau column");
+            Assert.AreEqual(twoOfHearts, rules.TableauColumns[1][1], 
+                "2 of hearts should be on top of tableau column");
+        }
     }
 }
