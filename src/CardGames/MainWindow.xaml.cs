@@ -524,13 +524,24 @@ namespace CardGames
         {
             DebugLog($"ExecuteMove: {DescribeCard(card)} from {DescribeControl(sourceControl)} to {DescribeControl(targetControl)}");
 
+            // Get the sequence of cards that should move together
+            List<Card> cardsToMove = GetCardSequenceToMove(sourceControl, card);
+            DebugLog($"ExecuteMove: Moving {cardsToMove.Count} card(s) in sequence");
+
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
             {
                 int foundationIndex = foundationControls.IndexOf(targetControl);
                 
+                // Foundation moves can only be single cards
+                if (cardsToMove.Count > 1)
+                {
+                    DebugLog("ExecuteMove: Cannot move multiple cards to foundation - using single card only");
+                    cardsToMove = new List<Card> { card };
+                }
+                
                 // Remove card from source
-                RemoveCardFromSource(sourceControl, card);
+                RemoveCardSequenceFromSource(sourceControl, cardsToMove);
                 
                 // Add to foundation pile
                 solitaireRules.FoundationPiles[foundationIndex].Add(card);
@@ -544,19 +555,11 @@ namespace CardGames
             int targetColumnIndex = GetTableauColumnIndex(targetControl);
             if (targetColumnIndex >= 0)
             {
-                // Remove card from source
-                RemoveCardFromSource(sourceControl, card);
+                // Remove cards from source
+                RemoveCardSequenceFromSource(sourceControl, cardsToMove);
                 
-                // Add to target tableau column
-                solitaireRules.TableauColumns[targetColumnIndex].Add(card);
-                
-                // Update face-up state tracking - newly added card should be face-up
-                int newCardPosition = solitaireRules.TableauColumns[targetColumnIndex].Count - 1;
-                EnsureFaceUpStateCapacity(targetColumnIndex, newCardPosition + 1);
-                tableauFaceUpStates[targetColumnIndex][newCardPosition] = true;
-                
-                // Refresh the display for the target column to show proper stacking
-                RefreshTableauColumn(targetColumnIndex);
+                // Add cards to target tableau column
+                AddCardSequenceToTableau(targetColumnIndex, cardsToMove);
                 
                 return;
             }
@@ -564,6 +567,13 @@ namespace CardGames
             // Handle other pile types (waste, stock, etc.)
             if (targetControl.Card == null)
             {
+                // Non-tableau moves can only be single cards
+                if (cardsToMove.Count > 1)
+                {
+                    DebugLog("ExecuteMove: Cannot move multiple cards to non-tableau - using single card only");
+                    cardsToMove = new List<Card> { card };
+                }
+                
                 // Move to empty space
                 targetControl.SetupCard(card);
                 targetControl.IsFaceUp = true;
@@ -587,22 +597,22 @@ namespace CardGames
                     
                     if (targetColumnIndexForExistingCard >= 0)
                     {
-                        RemoveCardFromSource(sourceControl, card);
+                        // Remove cards from source
+                        RemoveCardSequenceFromSource(sourceControl, cardsToMove);
                         
-                        // Add to target tableau column
-                        solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Add(card);
-                        
-                        // Update face-up state tracking - newly added card should be face-up
-                        int newCardPosition = solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Count - 1;
-                        EnsureFaceUpStateCapacity(targetColumnIndexForExistingCard, newCardPosition + 1);
-                        tableauFaceUpStates[targetColumnIndexForExistingCard][newCardPosition] = true;
-                        
-                        // Refresh the display for the target column to show proper stacking
-                        RefreshTableauColumn(targetColumnIndexForExistingCard);
+                        // Add cards to target tableau column
+                        AddCardSequenceToTableau(targetColumnIndexForExistingCard, cardsToMove);
                     }
                 }
                 else
                 {
+                    // Non-tableau moves can only be single cards
+                    if (cardsToMove.Count > 1)
+                    {
+                        DebugLog("ExecuteMove: Cannot move multiple cards to non-tableau - using single card only");
+                        cardsToMove = new List<Card> { card };
+                    }
+                    
                     // Non-tableau move - replace the card (for waste pile, etc.)
                     targetControl.SetupCard(card);
                     targetControl.IsFaceUp = true;
@@ -875,6 +885,9 @@ namespace CardGames
             int targetColumnIndex = GetTableauColumnIndex(targetControl);
             if (targetColumnIndex >= 0)
             {
+                // Get the sequence of cards that would move together
+                List<Card> cardsToMove = GetCardSequenceToMove(dragSourceControl, card);
+                
                 // This is a tableau move - use SolitaireRules validation
                 bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, targetColumnIndex);
                 // Gather current top card info
@@ -882,7 +895,7 @@ namespace CardGames
                 Card top = columnCards.Count > 0 ? columnCards[columnCards.Count - 1] : null;
                 bool rankOk = top == null ? (card.Number == Card.CardNumber.K) : IsOneRankLower(card.Number, top.Number);
                 bool colorOk = top == null ? true : IsOppositeColor(card, top);
-                DebugLog($" -> Tableau[{targetColumnIndex}] top={DescribeCard(top)} canPlace={canPlace} rankOk={rankOk} colorOk={colorOk}");
+                DebugLog($" -> Tableau[{targetColumnIndex}] top={DescribeCard(top)} canPlace={canPlace} rankOk={rankOk} colorOk={colorOk} sequenceSize={cardsToMove.Count}");
                 if (canPlace)
                 {
                     return "Valid";
@@ -1068,6 +1081,143 @@ namespace CardGames
             {
                 MessageBox.Show(this, $"Failed to load game: {ex.Message}", "Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        /// <summary>
+        /// Gets the sequence of cards that should move together when dragging from a tableau column
+        /// </summary>
+        /// <param name="sourceControl">The control where the drag started</param>
+        /// <param name="draggedCard">The card being dragged</param>
+        /// <returns>List of cards that should move together, or single card list if not a sequence move</returns>
+        private List<Card> GetCardSequenceToMove(CardUserControl sourceControl, Card draggedCard)
+        {
+            // Check if this is a tableau move
+            int sourceColumnIndex = GetTableauColumnIndex(sourceControl);
+            if (sourceColumnIndex < 0)
+            {
+                // Not a tableau move - return single card
+                return new List<Card> { draggedCard };
+            }
+
+            List<Card> sourceColumn = solitaireRules.TableauColumns[sourceColumnIndex];
+            List<Card> sequence = new List<Card>();
+
+            // Find the position of the dragged card in the column
+            int draggedCardIndex = -1;
+            for (int i = 0; i < sourceColumn.Count; i++)
+            {
+                if (sourceColumn[i] == draggedCard)
+                {
+                    draggedCardIndex = i;
+                    break;
+                }
+            }
+
+            if (draggedCardIndex < 0)
+            {
+                // Card not found in column - return single card
+                return new List<Card> { draggedCard };
+            }
+
+            // Check if all cards from the dragged card to the end are face-up and form a valid sequence
+            bool isValidSequence = true;
+            for (int i = draggedCardIndex; i < sourceColumn.Count; i++)
+            {
+                // Check if card is face-up
+                if (i >= tableauFaceUpStates[sourceColumnIndex].Count || !tableauFaceUpStates[sourceColumnIndex][i])
+                {
+                    isValidSequence = false;
+                    break;
+                }
+
+                sequence.Add(sourceColumn[i]);
+
+                // Check if this card can be placed on the previous card in the sequence (descending order, alternating colors)
+                if (i > draggedCardIndex)
+                {
+                    Card previousCard = sourceColumn[i - 1];
+                    Card currentCard = sourceColumn[i];
+                    
+                    if (!IsOneRankLower(currentCard.Number, previousCard.Number) || !IsOppositeColor(currentCard, previousCard))
+                    {
+                        isValidSequence = false;
+                        break;
+                    }
+                }
+            }
+
+            if (!isValidSequence)
+            {
+                // Not a valid sequence - return single card
+                return new List<Card> { draggedCard };
+            }
+
+            return sequence;
+        }
+
+        /// <summary>
+        /// Remove a sequence of cards from the source tableau column
+        /// </summary>
+        /// <param name="sourceControl">The source control</param>
+        /// <param name="cardsToRemove">The cards to remove</param>
+        private void RemoveCardSequenceFromSource(CardUserControl sourceControl, List<Card> cardsToRemove)
+        {
+            // Check if removing from tableau
+            int sourceColumnIndex = GetTableauColumnIndex(sourceControl);
+            if (sourceColumnIndex >= 0)
+            {
+                List<Card> sourceColumn = solitaireRules.TableauColumns[sourceColumnIndex];
+                
+                // Remove the cards from the end of the column
+                for (int i = 0; i < cardsToRemove.Count; i++)
+                {
+                    if (sourceColumn.Count > 0 && sourceColumn[sourceColumn.Count - 1] == cardsToRemove[i])
+                    {
+                        sourceColumn.RemoveAt(sourceColumn.Count - 1);
+                    }
+                }
+                
+                // Refresh the source column display
+                RefreshTableauColumn(sourceColumnIndex);
+                
+                // If there are still cards in the column, make the new top card face-up
+                if (sourceColumn.Count > 0)
+                {
+                    // Update the face-up state tracking - newly exposed card becomes face-up
+                    EnsureFaceUpStateCapacity(sourceColumnIndex, sourceColumn.Count);
+                    tableauFaceUpStates[sourceColumnIndex][sourceColumn.Count - 1] = true;
+                    
+                    // The newly exposed card should be face-up
+                    CardUserControl newTopControl = tableauControls[sourceColumnIndex][sourceColumn.Count - 1];
+                    newTopControl.IsFaceUp = true;
+                }
+                return;
+            }
+            
+            // For non-tableau sources, fall back to single card removal
+            RemoveCardFromSource(sourceControl, cardsToRemove[0]);
+        }
+
+        /// <summary>
+        /// Add a sequence of cards to the target tableau column
+        /// </summary>
+        /// <param name="targetColumnIndex">The target column index</param>
+        /// <param name="cardsToAdd">The cards to add</param>
+        private void AddCardSequenceToTableau(int targetColumnIndex, List<Card> cardsToAdd)
+        {
+            // Add all cards to the target tableau column
+            foreach (Card card in cardsToAdd)
+            {
+                solitaireRules.TableauColumns[targetColumnIndex].Add(card);
+                
+                // Update face-up state tracking - newly added card should be face-up
+                int newCardPosition = solitaireRules.TableauColumns[targetColumnIndex].Count - 1;
+                EnsureFaceUpStateCapacity(targetColumnIndex, newCardPosition + 1);
+                tableauFaceUpStates[targetColumnIndex][newCardPosition] = true;
+            }
+            
+            // Refresh the display for the target column to show proper stacking
+            RefreshTableauColumn(targetColumnIndex);
         }
     }
 }
