@@ -66,10 +66,21 @@ namespace CardGames
         /// </summary>
         public bool IsTableauDropTarget { get; set; }
 
+        /// <summary>
+        /// Gets or sets whether debug mode is enabled for troubleshooting drag and drop issues
+        /// </summary>
+        public bool IsDebugMode { get; set; }
+
+        /// <summary>
+        /// Event raised for debug logging to help troubleshoot drag and drop issues
+        /// </summary>
+        public event EventHandler<string> DebugLog;
+
         public CardUserControl()
         {
             InitializeComponent();
             AllowDrop = true;
+            IsDebugMode = false; // Debug mode off by default
         }
 
         public void SetupCard(Card card)
@@ -144,6 +155,52 @@ namespace CardGames
                 PicBack.Visibility = Visibility.Visible;
                 PicCard.Visibility = Visibility.Hidden;
             }
+            
+            // Update debug visual indicators if debug mode is enabled
+            UpdateDebugVisuals();
+        }
+
+        /// <summary>
+        /// Helper method to emit debug log messages when debug mode is enabled
+        /// </summary>
+        private void LogDebug(string message)
+        {
+            if (IsDebugMode)
+            {
+                string cardInfo = Card != null ? $"{Card.Number} of {Card.Suite}s" : "Empty";
+                string fullMessage = $"[{cardInfo}] {message}";
+                DebugLog?.Invoke(this, fullMessage);
+            }
+        }
+
+        /// <summary>
+        /// Updates debug visual indicators when debug mode is enabled
+        /// </summary>
+        private void UpdateDebugVisuals()
+        {
+            if (IsDebugMode && Card != null)
+            {
+                // Add debug border to show card boundaries
+                this.BorderBrush = new SolidColorBrush(Colors.Yellow);
+                this.BorderThickness = new Thickness(1);
+                
+                // Add debug background to show draggable state
+                if (IsFaceUp)
+                {
+                    this.Background = new SolidColorBrush(Color.FromArgb(20, 0, 255, 0)); // Light green for draggable
+                }
+                else
+                {
+                    this.Background = new SolidColorBrush(Color.FromArgb(20, 255, 0, 0)); // Light red for non-draggable
+                }
+            }
+            else if (!IsTableauDropTarget)
+            {
+                // Clear debug visuals when debug mode is off
+                this.Background = Brushes.Transparent;
+                this.BorderBrush = null;
+                this.BorderThickness = new Thickness(0);
+            }
         }
 
         private bool _isDragging = false;
@@ -151,9 +208,12 @@ namespace CardGames
 
         private void PicBack_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            LogDebug($"MouseDown - Button: {e.LeftButton}, ClickCount: {e.ClickCount}, IsFaceUp: {IsFaceUp}");
+            
             // Handle double-click using ClickCount since Image does not expose MouseDoubleClick in XAML
             if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 2)
             {
+                LogDebug("Double-click detected, handling as double-click");
                 PicBack_DoubleClick(sender, e);
                 e.Handled = true;
                 return;
@@ -164,6 +224,11 @@ namespace CardGames
             {
                 _startPoint = e.GetPosition(this);
                 _isDragging = false;
+                LogDebug($"Drag start point recorded: ({_startPoint.X:F1}, {_startPoint.Y:F1})");
+            }
+            else
+            {
+                LogDebug($"MouseDown ignored - Card: {(Card != null ? "Present" : "Null")}, IsFaceUp: {IsFaceUp}");
             }
         }
 
@@ -175,24 +240,55 @@ namespace CardGames
                 Point currentPosition = e.GetPosition(this);
                 Vector diff = _startPoint - currentPosition;
                 
-                if (Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance ||
-                    Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)
+                double horizontalDistance = Math.Abs(diff.X);
+                double verticalDistance = Math.Abs(diff.Y);
+                double minHorizontal = SystemParameters.MinimumHorizontalDragDistance;
+                double minVertical = SystemParameters.MinimumVerticalDragDistance;
+                
+                LogDebug($"MouseMove - Current: ({currentPosition.X:F1}, {currentPosition.Y:F1}), " +
+                        $"Distance: ({horizontalDistance:F1}, {verticalDistance:F1}), " +
+                        $"MinRequired: ({minHorizontal:F1}, {minVertical:F1})");
+                
+                if (horizontalDistance > minHorizontal || verticalDistance > minVertical)
                 {
                     _isDragging = true;
+                    LogDebug("Drag threshold exceeded - starting drag operation");
+                    
                     // Raise the drag started event
                     CardDragStarted?.Invoke(this, Card);
                     
                     // Initiate drag and drop operation
                     DragDrop.DoDragDrop(this, Card, DragDropEffects.Move);
+                    
+                    LogDebug("Drag operation completed");
+                }
+            }
+            else if (e.LeftButton == MouseButtonState.Pressed)
+            {
+                // Log why dragging is not allowed
+                if (Card == null)
+                {
+                    LogDebug("MouseMove ignored - No card present");
+                }
+                else if (!IsFaceUp)
+                {
+                    LogDebug("MouseMove ignored - Card is face down");
+                }
+                else if (_isDragging)
+                {
+                    LogDebug("MouseMove ignored - Already dragging");
                 }
             }
         }
 
         private void PicBack_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            LogDebug($"MouseUp - Button: {e.LeftButton}, WasDragging: {_isDragging}, IsStockPile: {IsStockPile}");
+            
             // Handle single-click for stock pile when no drag occurred
             if (e.LeftButton == MouseButtonState.Released && !_isDragging && IsStockPile)
             {
+                LogDebug("Stock pile single-click detected");
                 // For stock pile, raise the stock pile clicked event on single-click
                 StockPileClicked?.Invoke(this, EventArgs.Empty);
                 e.Handled = true;
@@ -226,13 +322,18 @@ namespace CardGames
 
         private void CardUserControl_DragEnter(object sender, DragEventArgs e)
         {
+            LogDebug("DragEnter event triggered");
+            
             if (e.Data.GetDataPresent(typeof(Card)))
             {
                 Card draggedCard = (Card)e.Data.GetData(typeof(Card));
+                LogDebug($"DragEnter with card: {draggedCard.Number} of {draggedCard.Suite}s");
                 
                 // Request validation from parent
                 ValidateDropEventArgs args = new ValidateDropEventArgs(draggedCard, this);
                 ValidateDrop?.Invoke(this, args);
+                
+                LogDebug($"Drop validation result: {args.IsValid}");
                 
                 // Show visual indicators on all sides based on validation result
                 SolidColorBrush indicatorBrush;
@@ -263,6 +364,7 @@ namespace CardGames
             }
             else
             {
+                LogDebug("DragEnter with non-card data");
                 e.Effects = DragDropEffects.None;
             }
             e.Handled = true;
@@ -283,6 +385,8 @@ namespace CardGames
 
         private void CardUserControl_DragLeave(object sender, DragEventArgs e)
         {
+            LogDebug("DragLeave event triggered");
+            
             // Hide all side indicators when drag leaves the control
             LeftIndicator.Visibility = Visibility.Collapsed;
             RightIndicator.Visibility = Visibility.Collapsed;
@@ -295,6 +399,8 @@ namespace CardGames
 
         private void CardUserControl_Drop(object sender, DragEventArgs e)
         {
+            LogDebug("Drop event triggered");
+            
             // Hide all side indicators after drop
             LeftIndicator.Visibility = Visibility.Collapsed;
             RightIndicator.Visibility = Visibility.Collapsed;
@@ -306,7 +412,12 @@ namespace CardGames
             if (e.Data.GetDataPresent(typeof(Card)))
             {
                 Card droppedCard = (Card)e.Data.GetData(typeof(Card));
+                LogDebug($"Drop with card: {droppedCard.Number} of {droppedCard.Suite}s");
                 CardDropped?.Invoke(this, new CardDropEventArgs(droppedCard, this));
+            }
+            else
+            {
+                LogDebug("Drop with non-card data");
             }
             e.Handled = true;
         }

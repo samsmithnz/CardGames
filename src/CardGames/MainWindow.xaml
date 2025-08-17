@@ -7,7 +7,8 @@
         xmlns:core="clr-namespace:CardGames.Core;assembly=CardGames.Core"
         mc:Ignorable="d"
         Title="Solitaire - Card Games" Height="700" Width="1200"
-        MinWidth="1000" MinHeight="600">
+        MinWidth="1000" MinHeight="600"
+        KeyDown="MainWindow_KeyDown" Focusable="True">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
