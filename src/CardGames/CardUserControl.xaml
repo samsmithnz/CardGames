@@ -34,5 +34,37 @@
                MouseLeftButtonDown="PicBack_MouseDown"
                MouseMove="PicBack_MouseMove"
                MouseLeftButtonUp="PicBack_MouseUp"/>
+        
+        <!-- Left side visual indicator -->
+        <Rectangle x:Name="LeftIndicator"
+                   Width="4"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Stretch"
+                   Fill="Transparent"
+                   Visibility="Collapsed"/>
+        
+        <!-- Right side visual indicator -->
+        <Rectangle x:Name="RightIndicator"
+                   Width="4"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Stretch"
+                   Fill="Transparent"
+                   Visibility="Collapsed"/>
+        
+        <!-- Top side visual indicator -->
+        <Rectangle x:Name="TopIndicator"
+                   Height="4"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Top"
+                   Fill="Transparent"
+                   Visibility="Collapsed"/>
+        
+        <!-- Bottom side visual indicator -->
+        <Rectangle x:Name="BottomIndicator"
+                   Height="4"
+                   HorizontalAlignment="Stretch"
+                   VerticalAlignment="Bottom"
+                   Fill="Transparent"
+                   Visibility="Collapsed"/>
     </Grid>
 </UserControl>

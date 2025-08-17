@@ -221,17 +221,30 @@ namespace CardGames
                 ValidateDropEventArgs args = new ValidateDropEventArgs(draggedCard, this);
                 ValidateDrop?.Invoke(this, args);
                 
-                // Highlight based on validation result
+                // Show visual indicators on all sides based on validation result
+                SolidColorBrush indicatorBrush;
                 if (args.IsValid)
                 {
-                    this.Background = new SolidColorBrush(Colors.LightGreen);
+                    indicatorBrush = new SolidColorBrush(Colors.LightGreen);
                     e.Effects = DragDropEffects.Move;
                 }
                 else
                 {
-                    this.Background = new SolidColorBrush(Colors.LightCoral);
+                    indicatorBrush = new SolidColorBrush(Colors.LightCoral);
                     e.Effects = DragDropEffects.None;
                 }
+                
+                // Set all side indicators
+                LeftIndicator.Fill = indicatorBrush;
+                RightIndicator.Fill = indicatorBrush;
+                TopIndicator.Fill = indicatorBrush;
+                BottomIndicator.Fill = indicatorBrush;
+                
+                // Make indicators visible
+                LeftIndicator.Visibility = Visibility.Visible;
+                RightIndicator.Visibility = Visibility.Visible;
+                TopIndicator.Visibility = Visibility.Visible;
+                BottomIndicator.Visibility = Visibility.Visible;
                 
                 this.Opacity = 0.8;
             }
@@ -257,16 +270,24 @@ namespace CardGames
 
         private void CardUserControl_DragLeave(object sender, DragEventArgs e)
         {
-            // Remove highlight when drag leaves the control
-            this.Background = new SolidColorBrush(Colors.Transparent);
+            // Hide all side indicators when drag leaves the control
+            LeftIndicator.Visibility = Visibility.Collapsed;
+            RightIndicator.Visibility = Visibility.Collapsed;
+            TopIndicator.Visibility = Visibility.Collapsed;
+            BottomIndicator.Visibility = Visibility.Collapsed;
+            
             this.Opacity = 1.0;
             e.Handled = true;
         }
 
         private void CardUserControl_Drop(object sender, DragEventArgs e)
         {
-            // Remove highlight after drop
-            this.Background = new SolidColorBrush(Colors.Transparent);
+            // Hide all side indicators after drop
+            LeftIndicator.Visibility = Visibility.Collapsed;
+            RightIndicator.Visibility = Visibility.Collapsed;
+            TopIndicator.Visibility = Visibility.Collapsed;
+            BottomIndicator.Visibility = Visibility.Collapsed;
+            
             this.Opacity = 1.0;
             
             if (e.Data.GetDataPresent(typeof(Card)))
