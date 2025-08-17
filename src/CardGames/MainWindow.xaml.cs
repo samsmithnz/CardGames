@@ -1,6 +1,9 @@
-﻿using CardGames.Core;
+﻿using System.IO;
+using Microsoft.Win32;
+using CardGames.Core;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,10 +31,14 @@ namespace CardGames
         // Collections to manage all card controls by pile type
         private List<CardUserControl> foundationControls;
         private List<List<CardUserControl>> tableauControls;
+        private List<Canvas> tableauCanvases; // Canvas containers for each tableau column
         
         // Track which positions in each tableau column should be face-up
         // This preserves face-up state during card moves and stacking
         private List<List<bool>> tableauFaceUpStates;
+
+        // Debug toggle
+        private bool debugEnabled = true;
 
         public MainWindow()
         {
@@ -39,6 +46,60 @@ namespace CardGames
             InitializeGame();
         }
         
+        /// <summary>
+        /// Write a debug line to Output window
+        /// </summary>
+        private void DebugLog(string message)
+        {
+            if (debugEnabled)
+            {
+                Debug.WriteLine($"[DEBUG] {message}");
+            }
+        }
+
+        /// <summary>
+        /// Friendly description of a card
+        /// </summary>
+        private string DescribeCard(Card card)
+        {
+            if (card == null)
+            {
+                return "(no card)";
+            }
+            return $"{card.Number} of {card.Suite}s";
+        }
+
+        /// <summary>
+        /// Friendly description of where a control lives
+        /// </summary>
+        private string DescribeControl(CardUserControl control)
+        {
+            if (control == null)
+            {
+                return "(null control)";
+            }
+            if (ReferenceEquals(control, StockPile))
+            {
+                return "StockPile";
+            }
+            if (ReferenceEquals(control, WastePile))
+            {
+                return "WastePile";
+            }
+            int fIndex = foundationControls != null ? foundationControls.IndexOf(control) : -1;
+            if (fIndex >= 0)
+            {
+                return $"Foundation[{fIndex}]";
+            }
+            int tCol = GetTableauColumnIndex(control);
+            if (tCol >= 0)
+            {
+                int tRow = GetTableauPositionIndex(control);
+                return $"Tableau[col={tCol}, row={tRow}]";
+            }
+            return "UnknownControl";
+        }
+
         /// <summary>
         /// Initialize the game components and layout
         /// </summary>
@@ -59,13 +120,25 @@ namespace CardGames
                 new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
                 new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 }
             };
+
+            // Map the Canvas for each tableau column for dynamic UI growth
+            tableauCanvases = new List<Canvas>
+            {
+                TableauColumn1,
+                TableauColumn2,
+                TableauColumn3,
+                TableauColumn4,
+                TableauColumn5,
+                TableauColumn6,
+                TableauColumn7
+            };
             
             // Initialize face-up state tracking for tableau columns
             tableauFaceUpStates = new List<List<bool>>();
             for (int i = 0; i < 7; i++)
             {
                 tableauFaceUpStates.Add(new List<bool>());
-                // Initialize with enough slots for maximum possible cards in each column
+                // Initialize with enough slots for maximum possible cards initially (based on UI controls)
                 for (int j = 0; j < tableauControls[i].Count; j++)
                 {
                     tableauFaceUpStates[i].Add(false);
@@ -78,26 +151,26 @@ namespace CardGames
             StartNewGame();
         }
 
-        
         /// <summary>
-        /// Wire up drag and drop events for all card controls
+        /// Wire up drag/drop and click events for all card controls
         /// </summary>
         private void SetupCardEvents()
         {
-            // Setup events for stock and waste piles
+            // Stock pile
             StockPile.CardDragStarted += OnCardDragStarted;
             StockPile.CardDropped += OnCardDropped;
             StockPile.ValidateDrop += OnValidateDrop;
             StockPile.CardClicked += OnCardClicked;
             StockPile.IsStockPile = true;
             StockPile.StockPileClicked += OnStockPileClicked;
-            
+
+            // Waste pile
             WastePile.CardDragStarted += OnCardDragStarted;
             WastePile.CardDropped += OnCardDropped;
             WastePile.ValidateDrop += OnValidateDrop;
             WastePile.CardClicked += OnCardClicked;
-            
-            // Setup events for foundation piles
+
+            // Foundations
             foreach (CardUserControl foundation in foundationControls)
             {
                 foundation.CardDragStarted += OnCardDragStarted;
@@ -105,17 +178,35 @@ namespace CardGames
                 foundation.ValidateDrop += OnValidateDrop;
                 foundation.CardClicked += OnCardClicked;
             }
-            
-            // Setup events for tableau controls
+
+            // Tableau columns
             foreach (List<CardUserControl> column in tableauControls)
             {
-                foreach (CardUserControl card in column)
+                foreach (CardUserControl control in column)
                 {
-                    card.CardDragStarted += OnCardDragStarted;
-                    card.CardDropped += OnCardDropped;
-                    card.ValidateDrop += OnValidateDrop;
-                    card.CardClicked += OnCardClicked;
+                    control.CardDragStarted += OnCardDragStarted;
+                    control.CardDropped += OnCardDropped;
+                    control.ValidateDrop += OnValidateDrop;
+                    control.CardClicked += OnCardClicked;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Ensures the face-up state list for a column has at least the specified capacity.
+        /// Adds entries initialized to false as needed.
+        /// </summary>
+        private void EnsureFaceUpStateCapacity(int columnIndex, int requiredCount)
+        {
+            if (columnIndex < 0 || columnIndex >= tableauFaceUpStates.Count)
+            {
+                return;
+            }
+
+            List<bool> states = tableauFaceUpStates[columnIndex];
+            while (states.Count < requiredCount)
+            {
+                states.Add(false);
             }
         }
 
@@ -151,6 +242,9 @@ namespace CardGames
                 List<Card> columnCards = solitaireRules.TableauColumns[col];
                 List<bool> columnFaceUpStates = tableauFaceUpStates[col];
                 
+                // Ensure the face-up states list can represent all cards in the column
+                EnsureFaceUpStateCapacity(col, columnCards.Count);
+
                 // Reset all states to false first
                 for (int row = 0; row < columnFaceUpStates.Count; row++)
                 {
@@ -207,11 +301,13 @@ namespace CardGames
                     UpdateWastePile();
                     
                     StatusLabel.Content = $"Drew {drawnCard.Number} of {drawnCard.Suite}s";
+                    DebugLog($"Drew card -> {DescribeCard(drawnCard)}. Waste size: {solitaireRules.WastePile.Count}");
                 }
             }
             else if (solitaireRules.WastePile.Count > 0)
             {
                 // Use the core method to reset stock pile from waste pile
+                DebugLog("Resetting stock from waste pile");
                 solitaireRules.ResetStock();
                 
                 UpdateStockPile();
@@ -281,27 +377,10 @@ namespace CardGames
                 }
             }
             
-            // Display tableau columns
+            // Display tableau columns (use centralized stacking/positioning logic)
             for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
             {
-                List<Card> columnCards = solitaireRules.TableauColumns[col];
-                List<CardUserControl> columnControls = tableauControls[col];
-                
-                for (int row = 0; row < columnControls.Count; row++)
-                {
-                    if (row < columnCards.Count)
-                    {
-                        Card card = columnCards[row];
-                        columnControls[row].SetupCard(card);
-                        // Use the tracked face-up state
-                        columnControls[row].IsFaceUp = tableauFaceUpStates[col][row];
-                        columnControls[row].Visibility = Visibility.Visible;
-                    }
-                    else
-                    {
-                        columnControls[row].Visibility = Visibility.Hidden;
-                    }
-                }
+                RefreshTableauColumn(col);
             }
         }
         
@@ -351,6 +430,7 @@ namespace CardGames
         {
             dragSourceControl = sender as CardUserControl;
             StatusLabel.Content = $"Dragging {card.Number} of {card.Suite}s";
+            DebugLog($"DragStarted from {DescribeControl(dragSourceControl)} with {DescribeCard(card)}");
         }
 
         /// <summary>
@@ -361,6 +441,7 @@ namespace CardGames
             // Validate the move using Solitaire rules
             string validationResult = ValidateMoveDetailed(e.DraggedCard, e.TargetControl);
             e.IsValid = validationResult == "Valid";
+            DebugLog($"ValidateDrop: {DescribeCard(e.DraggedCard)} from {DescribeControl(dragSourceControl)} to {DescribeControl(e.TargetControl)} -> {validationResult}");
         }
 
         /// <summary>
@@ -373,6 +454,7 @@ namespace CardGames
             
             // Validate the move and provide detailed feedback
             string validationResult = ValidateMoveDetailed(droppedCard, targetControl);
+            DebugLog($"Drop: {DescribeCard(droppedCard)} to {DescribeControl(targetControl)} -> {validationResult}");
             
             if (validationResult == "Valid")
             {
@@ -408,6 +490,8 @@ namespace CardGames
                 return;
             }
 
+            DebugLog($"CardClicked on {DescribeControl(sourceControl)} -> {DescribeCard(clickedCard)}");
+
             // Try to find an available foundation pile for this card
             int foundationIndex = solitaireRules.FindAvailableFoundationPile(clickedCard);
             if (foundationIndex >= 0)
@@ -438,6 +522,8 @@ namespace CardGames
         /// </summary>
         private void ExecuteMove(CardUserControl sourceControl, CardUserControl targetControl, Card card)
         {
+            DebugLog($"ExecuteMove: {DescribeCard(card)} from {DescribeControl(sourceControl)} to {DescribeControl(targetControl)}");
+
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
             {
@@ -466,6 +552,7 @@ namespace CardGames
                 
                 // Update face-up state tracking - newly added card should be face-up
                 int newCardPosition = solitaireRules.TableauColumns[targetColumnIndex].Count - 1;
+                EnsureFaceUpStateCapacity(targetColumnIndex, newCardPosition + 1);
                 tableauFaceUpStates[targetColumnIndex][newCardPosition] = true;
                 
                 // Refresh the display for the target column to show proper stacking
@@ -507,6 +594,7 @@ namespace CardGames
                         
                         // Update face-up state tracking - newly added card should be face-up
                         int newCardPosition = solitaireRules.TableauColumns[targetColumnIndexForExistingCard].Count - 1;
+                        EnsureFaceUpStateCapacity(targetColumnIndexForExistingCard, newCardPosition + 1);
                         tableauFaceUpStates[targetColumnIndexForExistingCard][newCardPosition] = true;
                         
                         // Refresh the display for the target column to show proper stacking
@@ -617,6 +705,7 @@ namespace CardGames
                     if (sourceColumn.Count > 0)
                     {
                         // Update the face-up state tracking - newly exposed card becomes face-up
+                        EnsureFaceUpStateCapacity(sourceColumnIndex, sourceColumn.Count);
                         tableauFaceUpStates[sourceColumnIndex][sourceColumn.Count - 1] = true;
                         
                         // The newly exposed card should be face-up
@@ -651,10 +740,11 @@ namespace CardGames
             }
             
             // Check if removing from waste pile
-            if (sourceControl == WastePile)
+            if (ReferenceEquals(sourceControl, WastePile))
             {
                 if (solitaireRules.WastePile.Count > 0 && solitaireRules.WastePile[solitaireRules.WastePile.Count - 1] == card)
                 {
+                    DebugLog($"Removing from Waste -> {DescribeCard(card)}");
                     solitaireRules.WastePile.RemoveAt(solitaireRules.WastePile.Count - 1);
                     UpdateWastePile();
                 }
@@ -678,28 +768,80 @@ namespace CardGames
             
             List<Card> columnCards = solitaireRules.TableauColumns[columnIndex];
             List<CardUserControl> columnControls = tableauControls[columnIndex];
+
+            // Ensure we have enough UI controls and face-up states
+            EnsureTableauUiCapacity(columnIndex, columnCards.Count == 0 ? 1 : columnCards.Count);
+            EnsureFaceUpStateCapacity(columnIndex, columnCards.Count);
+
+            DebugLog($"RefreshTableauColumn[{columnIndex}]: {columnCards.Count} cards in data, {tableauControls[columnIndex].Count} controls available");
+            
+            // Refresh local reference in case the list grew
+            columnControls = tableauControls[columnIndex];
             
             for (int row = 0; row < columnControls.Count; row++)
             {
                 if (row < columnCards.Count)
                 {
                     Card card = columnCards[row];
-                    columnControls[row].SetupCard(card);
-                    // Use the tracked face-up state instead of just the last card
-                    columnControls[row].IsFaceUp = tableauFaceUpStates[columnIndex][row];
-                    columnControls[row].Visibility = Visibility.Visible;
-                    
-                    // Set proper positioning for partial stacking using TableauVerticalOffset
-                    Canvas.SetTop(columnControls[row], row * CardVisualConstants.TableauVerticalOffset);
+                    CardUserControl control = columnControls[row];
+                    control.SetupCard(card);
+                    bool faceUp = row < tableauFaceUpStates[columnIndex].Count ? tableauFaceUpStates[columnIndex][row] : (row == columnCards.Count - 1);
+                    control.IsFaceUp = faceUp;
+                    control.Visibility = Visibility.Visible;
+
+                    double topPosition = row * CardVisualConstants.TableauVerticalOffset;
+                    Canvas.SetTop(control, topPosition);
+                    Panel.SetZIndex(control, row);
+                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}");
                 }
                 else
                 {
-                    columnControls[row].Card = null;
-                    columnControls[row].Visibility = Visibility.Hidden;
+                    // For empty columns, keep the first placeholder control visible to serve as a drop target
+                    if (columnCards.Count == 0 && row == 0)
+                    {
+                        CardUserControl control = columnControls[row];
+                        control.Card = null;
+                        control.IsFaceUp = false;
+                        control.Visibility = Visibility.Visible; // keep visible to accept drops
+                        Canvas.SetTop(control, 0);
+                        Panel.SetZIndex(control, 0);
+                        DebugLog("  Empty column -> keeping row 0 control visible for drop target");
+                    }
+                    else
+                    {
+                        columnControls[row].Card = null;
+                        columnControls[row].Visibility = Visibility.Hidden;
+                        DebugLog($"  Control[{row}] = hidden (no card)");
+                    }
                 }
             }
         }
 
+        /// <summary>
+        /// Ensure there are enough UI CardUserControl slots for the given tableau column.
+        /// If not, create additional controls, wire events, and add to the Canvas.
+        /// </summary>
+        private void EnsureTableauUiCapacity(int columnIndex, int requiredCount)
+        {
+            if (columnIndex < 0 || columnIndex >= tableauControls.Count)
+            {
+                return;
+            }
+
+            List<CardUserControl> controls = tableauControls[columnIndex];
+            Canvas canvas = tableauCanvases[columnIndex];
+
+            while (controls.Count < requiredCount)
+            {
+                CardUserControl control = new CardUserControl();
+                control.CardDragStarted += OnCardDragStarted;
+                control.CardDropped += OnCardDropped;
+                control.ValidateDrop += OnValidateDrop;
+                control.CardClicked += OnCardClicked;
+                canvas.Children.Add(control);
+                controls.Add(control);
+            }
+        }
         
         /// <summary>
         /// Validate a move with detailed feedback
@@ -710,12 +852,16 @@ namespace CardGames
             {
                 return "No card to move";
             }
+
+            DebugLog($"ValidateMoveDetailed: source={DescribeControl(dragSourceControl)}, target={DescribeControl(targetControl)}, card={DescribeCard(card)}");
             
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
             {
                 int foundationIndex = foundationControls.IndexOf(targetControl);
-                if (solitaireRules.CanPlaceCardOnFoundation(card, foundationIndex))
+                bool canPlaceFoundation = solitaireRules.CanPlaceCardOnFoundation(card, foundationIndex);
+                DebugLog($" -> Foundation[{foundationIndex}] canPlace={canPlaceFoundation}");
+                if (canPlaceFoundation)
                 {
                     return "Valid";
                 }
@@ -730,21 +876,27 @@ namespace CardGames
             if (targetColumnIndex >= 0)
             {
                 // This is a tableau move - use SolitaireRules validation
-                if (solitaireRules.CanPlaceCardOnTableau(card, targetColumnIndex))
+                bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, targetColumnIndex);
+                // Gather current top card info
+                List<Card> columnCards = solitaireRules.TableauColumns[targetColumnIndex];
+                Card top = columnCards.Count > 0 ? columnCards[columnCards.Count - 1] : null;
+                bool rankOk = top == null ? (card.Number == Card.CardNumber.K) : IsOneRankLower(card.Number, top.Number);
+                bool colorOk = top == null ? true : IsOppositeColor(card, top);
+                DebugLog($" -> Tableau[{targetColumnIndex}] top={DescribeCard(top)} canPlace={canPlace} rankOk={rankOk} colorOk={colorOk}");
+                if (canPlace)
                 {
                     return "Valid";
                 }
                 else
                 {
                     // Provide specific error message for empty vs non-empty tableau columns
-                    if (solitaireRules.TableauColumns[targetColumnIndex].Count == 0)
+                    if (columnCards.Count == 0)
                     {
                         return "Only Kings can be placed on empty tableau spaces";
                     }
                     else
                     {
-                        Card topCard = solitaireRules.TableauColumns[targetColumnIndex][solitaireRules.TableauColumns[targetColumnIndex].Count - 1];
-                        return $"{card.Number} cannot be placed on {topCard.Number} - must be one rank lower and opposite color";
+                        return $"{card.Number} cannot be placed on {top.Number} - must be one rank lower and opposite color";
                     }
                 }
             }
@@ -753,11 +905,13 @@ namespace CardGames
             if (targetControl.Card == null)
             {
                 // This is not a tableau move to an empty space
+                DebugLog(" -> Target is empty, but not a tableau slot. Rejecting.");
                 return "Cannot place cards on this empty space";
             }
             
             // If we reach here, it's a move to a non-tableau target with an existing card
             // This shouldn't happen in normal Solitaire gameplay
+            DebugLog(" -> Target is non-tableau with existing card. Rejecting.");
             return "Invalid move - cannot place card here";
         }
 
@@ -813,6 +967,106 @@ namespace CardGames
                 case Card.CardNumber.Q: return 12;
                 case Card.CardNumber.K: return 13;
                 default: return 0;
+            }
+        }
+
+        private void SaveGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SaveFileDialog dlg = new SaveFileDialog
+                {
+                    Title = "Save Solitaire State",
+                    Filter = "Solitaire State (*.json)|*.json",
+                    FileName = "solitaire-state.json"
+                };
+
+                bool? result = dlg.ShowDialog(this);
+                if (result == true)
+                {
+                    // Export rules data first
+                    SolitaireState state = solitaireRules.ExportState("saved from UI");
+
+                    // Persist UI face-up states per column, trimmed to current card counts
+                    state.TableauFaceUpStates.Clear();
+                    for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
+                    {
+                        List<bool> src = tableauFaceUpStates[col];
+                        List<bool> copy = new List<bool>();
+                        int cardCount = solitaireRules.TableauColumns[col].Count;
+                        for (int i = 0; i < cardCount; i++)
+                        {
+                            bool value = (i < src.Count) ? src[i] : (i == cardCount - 1);
+                            copy.Add(value);
+                        }
+                        state.TableauFaceUpStates.Add(copy);
+                    }
+
+                    string json = state.ToJson(true);
+                    File.WriteAllText(dlg.FileName, json);
+                    StatusLabel.Content = $"Game saved to {System.IO.Path.GetFileName(dlg.FileName)}";
+                    DebugLog($"Saved game state -> {dlg.FileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Failed to save game: {ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadGameButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog dlg = new OpenFileDialog
+                {
+                    Title = "Load Solitaire State",
+                    Filter = "Solitaire State (*.json)|*.json"
+                };
+
+                bool? result = dlg.ShowDialog(this);
+                if (result == true)
+                {
+                    string json = File.ReadAllText(dlg.FileName);
+                    SolitaireState state = SolitaireState.FromJson(json);
+
+                    // Replace rules state
+                    solitaireRules.ImportState(state);
+
+                    // Restore UI face-up states if present and well-formed; else recompute defaults
+                    if (state.TableauFaceUpStates != null && state.TableauFaceUpStates.Count == solitaireRules.TableauColumns.Count)
+                    {
+                        // Rebuild tableauFaceUpStates to match the saved data per column length
+                        tableauFaceUpStates.Clear();
+                        for (int col = 0; col < state.TableauFaceUpStates.Count; col++)
+                        {
+                            List<bool> src = state.TableauFaceUpStates[col] ?? new List<bool>();
+                            List<bool> copy = new List<bool>();
+                            int cardCount = solitaireRules.TableauColumns[col].Count;
+                            for (int i = 0; i < cardCount; i++)
+                            {
+                                bool value = (i < src.Count) ? src[i] : (i == cardCount - 1);
+                                copy.Add(value);
+                            }
+                            tableauFaceUpStates.Add(copy);
+                        }
+                    }
+                    else
+                    {
+                        InitializeTableauFaceUpStates();
+                    }
+
+                    // Redraw UI
+                    ClearAllCards();
+                    DisplayGame();
+
+                    StatusLabel.Content = $"Game loaded from {System.IO.Path.GetFileName(dlg.FileName)}";
+                    DebugLog($"Loaded game state <- {dlg.FileName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"Failed to load game: {ex.Message}", "Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }
