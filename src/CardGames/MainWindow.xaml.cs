@@ -923,7 +923,7 @@ namespace CardGames
                 {
                     if (solitaireRules.TableauColumns[col].Count == 0 && 
                         tableauControls[col].Count > 0 && 
-                        tableauControls[col][0] == targetControl)
+                        tableauControls[col].Contains(targetControl))
                     {
                         // This is an empty tableau column - validate the move
                         bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, col);
