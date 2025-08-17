@@ -985,6 +985,27 @@ namespace CardGames
                     }
                 }
                 
+                // Additional fallback: specifically check if this is the first tableau column
+                // This addresses issue #108 where the first empty tableau column might not be detected
+                if (tableauControls.Count > 0 && tableauControls[0].Count > 0 && 
+                    tableauControls[0].Contains(targetControl))
+                {
+                    int firstColumn = 0;
+                    if (solitaireRules.TableauColumns[firstColumn].Count == 0)
+                    {
+                        bool canPlaceOnFirst = solitaireRules.CanPlaceCardOnTableau(card, firstColumn);
+                        DebugLog($" -> First tableau column[{firstColumn}] fallback detection, canPlace={canPlaceOnFirst}");
+                        if (canPlaceOnFirst)
+                        {
+                            return "Valid";
+                        }
+                        else
+                        {
+                            return "Only Kings can be placed on empty tableau spaces";
+                        }
+                    }
+                }
+                
                 // This is not a tableau move to an empty space
                 DebugLog(" -> Target is empty, but not a tableau slot. Rejecting.");
                 return "Cannot place cards on this empty space";
