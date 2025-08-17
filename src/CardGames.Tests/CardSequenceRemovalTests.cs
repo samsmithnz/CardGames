@@ -28,8 +28,8 @@ namespace CardGames.Tests
             rules.TableauColumns[0].Add(jack);
             rules.TableauColumns[0].Add(ten);
             
-            // Prepare to remove Queen, Jack, Ten (as a sequence)
-            List<Card> sequenceToRemove = new List<Card> { queen, jack, ten };
+            // Prepare to remove Ten, Jack, Queen (top to bottom removal order)
+            List<Card> sequenceToRemove = new List<Card> { ten, jack, queen };
             
             // Act - simulate the removal logic from RemoveCardSequenceFromSource
             List<Card> sourceColumn = rules.TableauColumns[0];
