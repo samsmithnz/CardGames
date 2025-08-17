@@ -910,6 +910,7 @@ namespace CardGames
             }
 
             DebugLog($"ValidateMoveDetailed: source={DescribeControl(dragSourceControl)}, target={DescribeControl(targetControl)}, card={DescribeCard(card)}");
+            DebugLog($"  targetControl.Card = {DescribeCard(targetControl.Card)}");
             
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
@@ -929,6 +930,7 @@ namespace CardGames
             
             // Check if moving to tableau
             int targetColumnIndex = GetTableauColumnIndex(targetControl);
+            DebugLog($" -> GetTableauColumnIndex returned: {targetColumnIndex}");
             if (targetColumnIndex >= 0)
             {
                 // Get the sequence of cards that would move together
@@ -942,6 +944,7 @@ namespace CardGames
                 bool rankOk = top == null ? (card.Number == Card.CardNumber.K) : IsOneRankLower(card.Number, top.Number);
                 bool colorOk = top == null ? true : IsOppositeColor(card, top);
                 DebugLog($" -> Tableau[{targetColumnIndex}] top={DescribeCard(top)} canPlace={canPlace} rankOk={rankOk} colorOk={colorOk} sequenceSize={cardsToMove.Count}");
+                DebugLog($" -> Column has {columnCards.Count} cards, targetControl.Card={DescribeCard(targetControl.Card)}");
                 if (canPlace)
                 {
                     return "Valid";
@@ -963,39 +966,20 @@ namespace CardGames
             // Check if moving to other empty spaces (non-tableau)
             if (targetControl.Card == null)
             {
+                DebugLog(" -> Target control has no card, checking fallback logic for empty tableau columns");
                 // Before rejecting, check if this might be an empty tableau column
                 // that wasn't detected by GetTableauColumnIndex
                 for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
                 {
+                    DebugLog($"   Checking column {col}: data={solitaireRules.TableauColumns[col].Count} cards, UI={tableauControls[col].Count} controls");
                     if (solitaireRules.TableauColumns[col].Count == 0 && 
                         tableauControls[col].Count > 0 && 
                         tableauControls[col].Contains(targetControl))
                     {
                         // This is an empty tableau column - validate the move
                         bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, col);
-                        DebugLog($" -> Empty tableau column[{col}] detected, canPlace={canPlace}");
+                        DebugLog($" -> Empty tableau column[{col}] detected via fallback, canPlace={canPlace}");
                         if (canPlace)
-                        {
-                            return "Valid";
-                        }
-                        else
-                        {
-                            return "Only Kings can be placed on empty tableau spaces";
-                        }
-                    }
-                }
-                
-                // Additional fallback: specifically check if this is the first tableau column
-                // This addresses issue #108 where the first empty tableau column might not be detected
-                if (tableauControls.Count > 0 && tableauControls[0].Count > 0 && 
-                    tableauControls[0].Contains(targetControl))
-                {
-                    int firstColumn = 0;
-                    if (solitaireRules.TableauColumns[firstColumn].Count == 0)
-                    {
-                        bool canPlaceOnFirst = solitaireRules.CanPlaceCardOnTableau(card, firstColumn);
-                        DebugLog($" -> First tableau column[{firstColumn}] fallback detection, canPlace={canPlaceOnFirst}");
-                        if (canPlaceOnFirst)
                         {
                             return "Valid";
                         }
