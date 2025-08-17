@@ -13,28 +13,31 @@ CardGames is designed to implement various classic card games (such as Solitaire
 - **Clean Architecture**: Core game logic is completely separated from UI code
 - **Testable Design**: All game logic is unit tested and easily verifiable
 - **Modular Structure**: Each game variant is modular and reusable
-- **Desktop Experience**: Rich WPF-based user interface for Windows
+- **Multi-Platform**: Both desktop (WPF) and web (React/TypeScript) interfaces available
 
 ## Project Structure
 
-The solution is organized into three main projects:
+The solution is organized into four main projects:
 
 - **CardGames.Core** (.NET Standard 2.1): Contains the core game logic, card definitions, deck management, and game rules
-- **CardGames.Tests** (.NET 8.0): Comprehensive unit tests for all core functionality
+- **CardGames.Tests** (.NET 8.0): Comprehensive unit tests for all core functionality  
 - **CardGames.WPF** (.NET 8.0 Windows): Windows Presentation Foundation UI using MVVM pattern
+- **CardGames.Web** (React/TypeScript): Cross-platform web implementation with complete JavaScript test coverage
 
 ## Current Features
 
 - **Card System**: Complete playing card implementation with suits and numbers
 - **Deck Management**: Standard 52-card deck with shuffling capabilities
 - **Solitaire Game**: Full implementation of Klondike Solitaire with complete rule validation
-- **Unit Testing**: Comprehensive test coverage for all core functionality
+- **Unit Testing**: Comprehensive test coverage for both C# and JavaScript implementations
+- **Web Implementation**: TypeScript/React version of core game logic with full test coverage
 
 ## Getting Started
 
 ### Prerequisites
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) or later
+- [Node.js 18+](https://nodejs.org/) (for web project)
 - Windows (for WPF UI components)
 
 ### Building the Project
@@ -44,18 +47,31 @@ The solution is organized into three main projects:
 git clone https://github.com/samsmithnz/CardGames.git
 cd CardGames
 
-# Build the solution
+# Build the .NET solution
 dotnet build src/CardGames.sln
 
-# Run tests
+# Install JavaScript dependencies and run tests
+cd src/CardGames.Web
+npm install
+npm test
+
+# Run .NET tests
+cd ../..
 dotnet test src/CardGames.Tests/CardGames.Tests.csproj
 ```
 
-### Running the Application
+### Running the Applications
 
 ```bash
 # Run the WPF application (Windows only)
 dotnet run --project src/CardGames.WPF/CardGames.WPF.csproj
+
+# Run JavaScript tests with coverage
+cd src/CardGames.Web
+npm run test:coverage
+
+# Build TypeScript for production
+npm run build
 ```
 
 ## Game Rules
@@ -71,9 +87,9 @@ Key features:
 
 ## Technology Stack
 
-- **Language**: C# 
-- **Framework**: .NET 8.0 / .NET Standard 2.1
-- **UI Framework**: Windows Presentation Foundation (WPF)
+- **Languages**: C#, TypeScript/JavaScript
+- **Frameworks**: .NET 8.0 / .NET Standard 2.1, React
+- **UI Frameworks**: Windows Presentation Foundation (WPF), React with TypeScript
 - **Testing**: MSTest
 - **CI/CD**: GitHub Actions
 - **Architecture Pattern**: MVVM (for UI), Clean Architecture (overall)
