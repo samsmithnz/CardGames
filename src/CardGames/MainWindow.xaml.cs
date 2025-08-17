@@ -276,6 +276,14 @@ namespace CardGames
         }
 
         /// <summary>
+        /// Recycle waste pile back to stock pile (button click handler)
+        /// </summary>
+        private void RecycleButton_Click(object sender, RoutedEventArgs e)
+        {
+            DrawCardFromStock(); // Uses the same logic as clicking the empty stock pile
+        }
+
+        /// <summary>
         /// Handle stock pile clicks to draw cards
         /// </summary>
         private void OnStockPileClicked(object sender, EventArgs e)
@@ -408,6 +416,9 @@ namespace CardGames
                 StockPile.Card = null;
                 StockPile.IsFaceUp = false;
             }
+            
+            // Update recycle button visibility when stock pile changes
+            UpdateRecycleButtonVisibility();
         }
         
         /// <summary>
@@ -425,6 +436,25 @@ namespace CardGames
             {
                 WastePile.Card = null;
                 WastePile.IsFaceUp = false;
+            }
+            
+            // Update recycle button visibility when waste pile changes
+            UpdateRecycleButtonVisibility();
+        }
+
+        /// <summary>
+        /// Update the visibility of the recycle button based on stock and waste pile states
+        /// </summary>
+        private void UpdateRecycleButtonVisibility()
+        {
+            // Show recycle button when stock is empty and waste has cards
+            if (solitaireRules.StockPile.Count == 0 && solitaireRules.WastePile.Count > 0)
+            {
+                RecycleButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                RecycleButton.Visibility = Visibility.Collapsed;
             }
         }
 
