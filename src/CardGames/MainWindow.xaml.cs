@@ -984,7 +984,25 @@ namespace CardGames
                 bool? result = dlg.ShowDialog(this);
                 if (result == true)
                 {
-                    string json = solitaireRules.ExportState("saved from UI").ToJson(true);
+                    // Export rules data first
+                    SolitaireState state = solitaireRules.ExportState("saved from UI");
+
+                    // Persist UI face-up states per column, trimmed to current card counts
+                    state.TableauFaceUpStates.Clear();
+                    for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
+                    {
+                        List<bool> src = tableauFaceUpStates[col];
+                        List<bool> copy = new List<bool>();
+                        int cardCount = solitaireRules.TableauColumns[col].Count;
+                        for (int i = 0; i < cardCount; i++)
+                        {
+                            bool value = (i < src.Count) ? src[i] : (i == cardCount - 1);
+                            copy.Add(value);
+                        }
+                        state.TableauFaceUpStates.Add(copy);
+                    }
+
+                    string json = state.ToJson(true);
                     File.WriteAllText(dlg.FileName, json);
                     StatusLabel.Content = $"Game saved to {System.IO.Path.GetFileName(dlg.FileName)}";
                     DebugLog($"Saved game state -> {dlg.FileName}");
@@ -1015,8 +1033,28 @@ namespace CardGames
                     // Replace rules state
                     solitaireRules.ImportState(state);
 
-                    // Reset and recompute face-up states based on standard rules
-                    InitializeTableauFaceUpStates();
+                    // Restore UI face-up states if present and well-formed; else recompute defaults
+                    if (state.TableauFaceUpStates != null && state.TableauFaceUpStates.Count == solitaireRules.TableauColumns.Count)
+                    {
+                        // Rebuild tableauFaceUpStates to match the saved data per column length
+                        tableauFaceUpStates.Clear();
+                        for (int col = 0; col < state.TableauFaceUpStates.Count; col++)
+                        {
+                            List<bool> src = state.TableauFaceUpStates[col] ?? new List<bool>();
+                            List<bool> copy = new List<bool>();
+                            int cardCount = solitaireRules.TableauColumns[col].Count;
+                            for (int i = 0; i < cardCount; i++)
+                            {
+                                bool value = (i < src.Count) ? src[i] : (i == cardCount - 1);
+                                copy.Add(value);
+                            }
+                            tableauFaceUpStates.Add(copy);
+                        }
+                    }
+                    else
+                    {
+                        InitializeTableauFaceUpStates();
+                    }
 
                     // Redraw UI
                     ClearAllCards();

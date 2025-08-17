@@ -15,6 +15,7 @@ namespace CardGames.Core
 
     /// <summary>
     /// Serializable game state for Solitaire. Captures all piles/columns.
+    /// Includes optional UI hints like TableauFaceUpStates to preserve UI state.
     /// </summary>
     public class SolitaireState
     {
@@ -22,6 +23,13 @@ namespace CardGames.Core
         public List<CardDto> WastePile { get; set; } = new List<CardDto>();
         public List<List<CardDto>> FoundationPiles { get; set; } = new List<List<CardDto>>();
         public List<List<CardDto>> TableauColumns { get; set; } = new List<List<CardDto>>();
+
+        /// <summary>
+        /// Optional: UI face-up flags for each tableau column (parallel to TableauColumns).
+        /// Each inner list should have the same length as the corresponding TableauColumns entry.
+        /// </summary>
+        public List<List<bool>> TableauFaceUpStates { get; set; } = new List<List<bool>>();
+
         public string? Note { get; set; }
 
         public string ToJson(bool indented = true)
@@ -104,6 +112,7 @@ namespace CardGames.Core
                     column.Add(c.ToDto());
                 }
                 state.TableauColumns.Add(column);
+                state.TableauFaceUpStates.Add(new List<bool>()); // UI will populate if needed
             }
 
             state.Note = note;
