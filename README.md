@@ -13,15 +13,16 @@ CardGames is designed to implement various classic card games (such as Solitaire
 - **Clean Architecture**: Core game logic is completely separated from UI code
 - **Testable Design**: All game logic is unit tested and easily verifiable
 - **Modular Structure**: Each game variant is modular and reusable
-- **Desktop Experience**: Rich WPF-based user interface for Windows
+- **Desktop Experience**: Rich desktop user interfaces for Windows using both WPF and Windows Forms
 
 ## Project Structure
 
-The solution is organized into three main projects:
+The solution is organized into four main projects:
 
 - **CardGames.Core** (.NET Standard 2.1): Contains the core game logic, card definitions, deck management, and game rules
 - **CardGames.Tests** (.NET 8.0): Comprehensive unit tests for all core functionality
 - **CardGames.WPF** (.NET 8.0 Windows): Windows Presentation Foundation UI using MVVM pattern
+- **CardGames.WinForms** (.NET 8.0 Windows): Windows Forms UI with classic desktop controls
 
 ## Current Features
 
@@ -53,9 +54,14 @@ dotnet test src/CardGames.Tests/CardGames.Tests.csproj
 
 ### Running the Application
 
+Choose from two different UI options:
+
 ```bash
 # Run the WPF application (Windows only)
 dotnet run --project src/CardGames.WPF/CardGames.WPF.csproj
+
+# Run the Windows Forms application (Windows only)
+dotnet run --project src/CardGames.WinForms/CardGames.WinForms.csproj
 ```
 
 ## Game Rules
@@ -73,7 +79,7 @@ Key features:
 
 - **Language**: C# 
 - **Framework**: .NET 8.0 / .NET Standard 2.1
-- **UI Framework**: Windows Presentation Foundation (WPF)
+- **UI Framework**: Windows Presentation Foundation (WPF) and Windows Forms
 - **Testing**: MSTest
 - **CI/CD**: GitHub Actions
 - **Architecture Pattern**: MVVM (for UI), Clean Architecture (overall)
