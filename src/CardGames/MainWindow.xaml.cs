@@ -770,7 +770,7 @@ namespace CardGames
             List<CardUserControl> columnControls = tableauControls[columnIndex];
 
             // Ensure we have enough UI controls and face-up states
-            EnsureTableauUiCapacity(columnIndex, columnCards.Count);
+            EnsureTableauUiCapacity(columnIndex, columnCards.Count == 0 ? 1 : columnCards.Count);
             EnsureFaceUpStateCapacity(columnIndex, columnCards.Count);
 
             DebugLog($"RefreshTableauColumn[{columnIndex}]: {columnCards.Count} cards in data, {tableauControls[columnIndex].Count} controls available");
@@ -796,9 +796,23 @@ namespace CardGames
                 }
                 else
                 {
-                    columnControls[row].Card = null;
-                    columnControls[row].Visibility = Visibility.Hidden;
-                    DebugLog($"  Control[{row}] = hidden (no card)");
+                    // For empty columns, keep the first placeholder control visible to serve as a drop target
+                    if (columnCards.Count == 0 && row == 0)
+                    {
+                        CardUserControl control = columnControls[row];
+                        control.Card = null;
+                        control.IsFaceUp = false;
+                        control.Visibility = Visibility.Visible; // keep visible to accept drops
+                        Canvas.SetTop(control, 0);
+                        Panel.SetZIndex(control, 0);
+                        DebugLog("  Empty column -> keeping row 0 control visible for drop target");
+                    }
+                    else
+                    {
+                        columnControls[row].Card = null;
+                        columnControls[row].Visibility = Visibility.Hidden;
+                        DebugLog($"  Control[{row}] = hidden (no card)");
+                    }
                 }
             }
         }
