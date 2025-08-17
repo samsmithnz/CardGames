@@ -72,6 +72,13 @@ namespace CardGames
         public bool IsDebugMode { get; set; }
 
         /// <summary>
+        /// Gets or sets the expected visible height for this card when stacked.
+        /// This helps limit hit testing to only the visible portion of stacked cards.
+        /// Default is full card height (120px). For stacked cards, this should be set to TableauVerticalOffset (20px).
+        /// </summary>
+        public double VisibleHeight { get; set; } = CardGames.Core.CardVisualConstants.CardHeight;
+
+        /// <summary>
         /// Event raised for debug logging to help troubleshoot drag and drop issues
         /// </summary>
         public event EventHandler<string> DebugLog;
@@ -174,17 +181,38 @@ namespace CardGames
         }
 
         /// <summary>
+        /// Checks if a mouse position is within the visible (clickable) area of this card.
+        /// This prevents interactions with hidden portions of stacked cards.
+        /// </summary>
+        private bool IsWithinVisibleArea(Point mousePosition)
+        {
+            // Check horizontal bounds (always full width)
+            if (mousePosition.X < 0 || mousePosition.X > this.ActualWidth)
+            {
+                return false;
+            }
+            
+            // Check vertical bounds (limited by VisibleHeight)
+            if (mousePosition.Y < 0 || mousePosition.Y > VisibleHeight)
+            {
+                return false;
+            }
+            
+            return true;
+        }
+
+        /// <summary>
         /// Updates debug visual indicators when debug mode is enabled
         /// </summary>
         private void UpdateDebugVisuals()
         {
             if (IsDebugMode && Card != null)
             {
-                // Add debug border to show card boundaries
+                // Add debug border to show actual clickable boundaries (not full card)
                 this.BorderBrush = new SolidColorBrush(Colors.Yellow);
                 this.BorderThickness = new Thickness(1);
                 
-                // Add debug background to show draggable state
+                // Add debug background to show draggable state, but only in visible area
                 if (IsFaceUp)
                 {
                     this.Background = new SolidColorBrush(Color.FromArgb(20, 0, 255, 0)); // Light green for draggable
@@ -193,6 +221,22 @@ namespace CardGames
                 {
                     this.Background = new SolidColorBrush(Color.FromArgb(20, 255, 0, 0)); // Light red for non-draggable
                 }
+                
+                // Add a visual indicator to show the visible hit area
+                // This will help users see exactly where they can click
+                if (VisibleHeight < CardGames.Core.CardVisualConstants.CardHeight)
+                {
+                    // Create a clip to show only the visible portion
+                    RectangleGeometry clip = new RectangleGeometry();
+                    clip.Rect = new Rect(0, 0, this.Width, VisibleHeight);
+                    this.Clip = clip;
+                    
+                    LogDebug($"Debug: Visible hit area clipped to {this.Width:F1} × {VisibleHeight:F1} (was {this.Width:F1} × {CardGames.Core.CardVisualConstants.CardHeight:F1})");
+                }
+                else
+                {
+                    this.Clip = null; // Full card is visible
+                }
             }
             else if (!IsTableauDropTarget)
             {
@@ -200,6 +244,7 @@ namespace CardGames
                 this.Background = Brushes.Transparent;
                 this.BorderBrush = null;
                 this.BorderThickness = new Thickness(0);
+                this.Clip = null;
             }
         }
 
@@ -208,7 +253,15 @@ namespace CardGames
 
         private void PicBack_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            LogDebug($"MouseDown - Button: {e.LeftButton}, ClickCount: {e.ClickCount}, IsFaceUp: {IsFaceUp}");
+            Point mousePosition = e.GetPosition(this);
+            LogDebug($"MouseDown - Button: {e.LeftButton}, ClickCount: {e.ClickCount}, IsFaceUp: {IsFaceUp}, Position: ({mousePosition.X:F1}, {mousePosition.Y:F1})");
+            
+            // Check if the click is within the visible area
+            if (!IsWithinVisibleArea(mousePosition))
+            {
+                LogDebug($"MouseDown ignored - Click outside visible area (visible height: {VisibleHeight:F1})");
+                return;
+            }
             
             // Handle double-click using ClickCount since Image does not expose MouseDoubleClick in XAML
             if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 2)
@@ -222,7 +275,7 @@ namespace CardGames
             // Only allow starting a drag for face-up cards
             if (e.LeftButton == MouseButtonState.Pressed && Card != null && IsFaceUp)
             {
-                _startPoint = e.GetPosition(this);
+                _startPoint = mousePosition;
                 _isDragging = false;
                 LogDebug($"Drag start point recorded: ({_startPoint.X:F1}, {_startPoint.Y:F1})");
             }

@@ -7,13 +7,18 @@ This enhancement provides comprehensive troubleshooting capabilities for drag an
 ## Common Issues
 
 ### Problem: "I can't grab cards that have other cards partially stacked on it"
-This is typically caused by:
-1. **Hit Testing Issues**: The upper cards are intercepting mouse events intended for lower cards
-2. **Small Hit Area**: Only 20px of the underlying card is visible, making it harder to target
-3. **Z-Index Priority**: WPF prioritizes the topmost visual element for mouse events
+This was caused by:
+1. **Hit Testing Overlap**: The full 80×120 pixel card areas overlapped, even when only 20px was visible
+2. **Incorrect Hit Area**: Cards responded to clicks anywhere in their full area, not just the visible portion
+3. **Z-Index Priority**: WPF prioritized the topmost visual element for mouse events
+
+**✅ FIXED**: The system now restricts hit testing to only the visible portion of each card:
+- **Stacked cards**: Only respond to clicks in their visible 20px strip  
+- **Top cards**: Respond to clicks in their full 80×120px area
+- **Debug mode**: Shows the correct, clipped hit areas with yellow borders
 
 ### Problem: "I can always move cards with no stacks"
-This is expected behavior - cards without stacks have their full 80x120 pixel area available for mouse interaction.
+This is expected behavior - cards without stacks have their full 80×120 pixel area available for mouse interaction.
 
 ## Troubleshooting Features
 
@@ -22,11 +27,14 @@ This is expected behavior - cards without stacks have their full 80x120 pixel ar
 **How to Enable**: Press `Ctrl+D` while the game window has focus
 
 **What it does**:
-- Adds colored borders around all cards to show their boundaries
+- Adds colored borders around cards to show their **actual clickable boundaries** (not full card size)
 - Shows visual indicators for draggable vs non-draggable cards:
   - **Light Green Background**: Face-up cards (draggable)
   - **Light Red Background**: Face-down cards (non-draggable)
-- **Yellow Border**: Shows the exact hit area for each card
+- **Yellow Border with Clipping**: Shows the exact hit area for each card
+  - **Stacked cards**: Clipped to show only the visible 20px strip
+  - **Top cards**: Shows full 80×120px area
+  - **Foundation/Stock/Waste**: Shows full card area
 
 ### 2. Enhanced Debug Logging
 
@@ -34,10 +42,17 @@ When debug mode is enabled, detailed log messages are written to the Visual Stud
 
 **Mouse Events**:
 ```
-CardControl(Tableau[col=2, row=3]): MouseDown - Button: Pressed, ClickCount: 1, IsFaceUp: True
-CardControl(Tableau[col=2, row=3]): Drag start point recorded: (45.2, 67.8)
-CardControl(Tableau[col=2, row=3]): MouseMove - Current: (52.1, 75.3), Distance: (8.1, 9.2), MinRequired: (4.0, 4.0)
-CardControl(Tableau[col=2, row=3]): Drag threshold exceeded - starting drag operation
+CardControl(Tableau[col=2, row=1]): MouseDown - Button: Pressed, ClickCount: 1, IsFaceUp: True, Position: (15.2, 8.5)
+CardControl(Tableau[col=2, row=1]): Drag start point recorded: (15.2, 8.5)
+CardControl(Tableau[col=2, row=1]): Debug: Visible hit area clipped to 80.0 × 20.0 (was 80.0 × 120.0)
+CardControl(Tableau[col=2, row=1]): MouseMove - Current: (18.4, 18.0), Distance: (3.2, 9.5), MinRequired: (4.0, 4.0)
+CardControl(Tableau[col=2, row=1]): Drag threshold exceeded - starting drag operation
+```
+
+**Hit Area Validation**:
+```
+CardControl(Tableau[col=2, row=2]): MouseDown - Button: Pressed, Position: (25.0, 95.0)
+CardControl(Tableau[col=2, row=2]): MouseDown ignored - Click outside visible area (visible height: 20.0)
 ```
 
 **Drag and Drop Events**:

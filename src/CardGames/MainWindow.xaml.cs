@@ -218,6 +218,7 @@ namespace CardGames
             StockPile.DebugLog += OnCardDebugLog;
             StockPile.IsStockPile = true;
             StockPile.StockPileClicked += OnStockPileClicked;
+            StockPile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for stock pile
 
             // Waste pile
             WastePile.CardDragStarted += OnCardDragStarted;
@@ -225,6 +226,7 @@ namespace CardGames
             WastePile.ValidateDrop += OnValidateDrop;
             WastePile.CardClicked += OnCardClicked;
             WastePile.DebugLog += OnCardDebugLog;
+            WastePile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for waste pile
 
             // Foundations
             foreach (CardUserControl foundation in foundationControls)
@@ -234,6 +236,7 @@ namespace CardGames
                 foundation.ValidateDrop += OnValidateDrop;
                 foundation.CardClicked += OnCardClicked;
                 foundation.DebugLog += OnCardDebugLog;
+                foundation.VisibleHeight = CardVisualConstants.CardHeight; // Full height for foundation piles
             }
 
             // Tableau columns
@@ -246,6 +249,7 @@ namespace CardGames
                     control.ValidateDrop += OnValidateDrop;
                     control.CardClicked += OnCardClicked;
                     control.DebugLog += OnCardDebugLog;
+                    control.VisibleHeight = CardVisualConstants.CardHeight; // Initialize to full height, will be adjusted during layout
                 }
             }
         }
@@ -907,7 +911,12 @@ namespace CardGames
                     double topPosition = row * CardVisualConstants.TableauVerticalOffset;
                     Canvas.SetTop(control, topPosition);
                     Panel.SetZIndex(control, row);
-                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}");
+                    
+                    // Set visible height for hit testing: last card gets full height, others get only the offset
+                    bool isLastCard = (row == columnCards.Count - 1);
+                    control.VisibleHeight = isLastCard ? CardVisualConstants.CardHeight : CardVisualConstants.TableauVerticalOffset;
+                    
+                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}, VisibleHeight={control.VisibleHeight}");
                 }
                 else
                 {
@@ -919,6 +928,7 @@ namespace CardGames
                         control.IsFaceUp = false;
                         control.IsTableauDropTarget = true; // Mark as drop target for visual styling
                         control.Visibility = Visibility.Visible; // keep visible to accept drops
+                        control.VisibleHeight = CardVisualConstants.CardHeight; // Full height for empty drop targets
                         Canvas.SetTop(control, 0);
                         Panel.SetZIndex(control, 0);
                         DebugLog("  Empty column -> keeping row 0 control visible for drop target");
