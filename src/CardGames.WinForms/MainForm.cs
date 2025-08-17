@@ -12,6 +12,7 @@ namespace CardGames.WinForms
     /// </summary>
     public partial class MainForm : Form
     {
+        private Deck deck;
         private SolitaireRules solitaireRules;
         private List<List<CardUserControl>> tableauControls;
         private List<List<bool>> tableauFaceUpStates;
@@ -260,8 +261,12 @@ namespace CardGames.WinForms
         /// </summary>
         private void StartNewGame()
         {
+            deck = new Deck();
             solitaireRules = new SolitaireRules();
-            solitaireRules.NewGame();
+            
+            // Shuffle deck and deal new game
+            deck.Shuffle();
+            solitaireRules.DealCards(deck);
 
             // Clear face-up states
             foreach (List<bool> columnStates in tableauFaceUpStates)
