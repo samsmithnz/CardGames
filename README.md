@@ -6,6 +6,9 @@
 
 A C# implementation of classic card games featuring clean architecture, testable logic, and a desktop user interface. This project demonstrates modern software development practices while providing entertaining and familiar card game experiences.
 
+<img width="1186" height="693" alt="image" src="https://github.com/user-attachments/assets/8c36e9a8-3cc4-49ac-966b-9a40ab86cea0" />
+
+
 ## Project Overview
 
 CardGames is designed to implement various classic card games (such as Solitaire, Poker, and others) with a focus on:
