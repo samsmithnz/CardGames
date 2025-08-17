@@ -302,6 +302,9 @@ namespace CardGames
                     
                     StatusLabel.Content = $"Drew {drawnCard.Number} of {drawnCard.Suite}s";
                     DebugLog($"Drew card -> {DescribeCard(drawnCard)}. Waste size: {solitaireRules.WastePile.Count}");
+                    
+                    // Validate UI synchronization after drawing card
+                    ValidateUiDataSynchronization();
                 }
             }
             else if (solitaireRules.WastePile.Count > 0)
@@ -313,6 +316,9 @@ namespace CardGames
                 UpdateStockPile();
                 UpdateWastePile();
                 StatusLabel.Content = "Stock pile reset";
+                
+                // Validate UI synchronization after stock reset
+                ValidateUiDataSynchronization();
             }
             else
             {
@@ -548,6 +554,8 @@ namespace CardGames
                 targetControl.SetupCard(card);
                 targetControl.IsFaceUp = true;
                 
+                // Validate UI synchronization after move completion
+                ValidateUiDataSynchronization();
                 return;
             }
             
@@ -561,6 +569,8 @@ namespace CardGames
                 // Add cards to target tableau column
                 AddCardSequenceToTableau(targetColumnIndex, cardsToMove);
                 
+                // Validate UI synchronization after move completion
+                ValidateUiDataSynchronization();
                 return;
             }
             
@@ -602,6 +612,9 @@ namespace CardGames
                         
                         // Add cards to target tableau column
                         AddCardSequenceToTableau(targetColumnIndexForExistingCard, cardsToMove);
+                        
+                        // Validate UI synchronization after move completion
+                        ValidateUiDataSynchronization();
                     }
                 }
                 else
@@ -619,6 +632,9 @@ namespace CardGames
                     sourceControl.Card = null;
                 }
             }
+            
+            // Validate UI synchronization after move completion
+            ValidateUiDataSynchronization();
         }
 
         /// <summary>
@@ -1240,6 +1256,171 @@ namespace CardGames
             
             // Refresh the display for the target column to show proper stacking
             RefreshTableauColumn(targetColumnIndex);
+        }
+
+        /// <summary>
+        /// Validate that the UI state is synchronized with the underlying data model
+        /// This method compares the displayed cards with the actual data and reports any discrepancies
+        /// </summary>
+        /// <returns>True if UI and data are synchronized, false if discrepancies are found</returns>
+        private bool ValidateUiDataSynchronization()
+        {
+            bool isValid = true;
+            DebugLog("=== UI-Data Synchronization Check ===");
+
+            // Check Foundation Piles
+            for (int i = 0; i < foundationControls.Count; i++)
+            {
+                CardUserControl foundationControl = foundationControls[i];
+                List<Card> foundationData = solitaireRules.FoundationPiles[i];
+                
+                if (foundationData.Count == 0)
+                {
+                    if (foundationControl.Card != null)
+                    {
+                        DebugLog($"MISMATCH: Foundation[{i}] UI shows {DescribeCard(foundationControl.Card)}, data shows empty");
+                        isValid = false;
+                    }
+                }
+                else
+                {
+                    Card expectedTopCard = foundationData[foundationData.Count - 1];
+                    if (foundationControl.Card == null)
+                    {
+                        DebugLog($"MISMATCH: Foundation[{i}] UI shows empty, data shows {DescribeCard(expectedTopCard)}");
+                        isValid = false;
+                    }
+                    else if (!CardsEqual(foundationControl.Card, expectedTopCard))
+                    {
+                        DebugLog($"MISMATCH: Foundation[{i}] UI shows {DescribeCard(foundationControl.Card)}, data shows {DescribeCard(expectedTopCard)}");
+                        isValid = false;
+                    }
+                }
+            }
+
+            // Check Tableau Columns
+            for (int col = 0; col < tableauControls.Count; col++)
+            {
+                List<Card> tableauData = solitaireRules.TableauColumns[col];
+                List<CardUserControl> tableauUi = tableauControls[col];
+                
+                DebugLog($"Tableau[{col}]: Data has {tableauData.Count} cards, UI has {tableauUi.Count} controls");
+                
+                // Check each visible card in the column
+                for (int row = 0; row < tableauData.Count; row++)
+                {
+                    Card expectedCard = tableauData[row];
+                    
+                    if (row >= tableauUi.Count)
+                    {
+                        DebugLog($"MISMATCH: Tableau[{col}][{row}] data shows {DescribeCard(expectedCard)}, but UI control doesn't exist");
+                        isValid = false;
+                        continue;
+                    }
+                    
+                    CardUserControl uiControl = tableauUi[row];
+                    if (uiControl.Card == null)
+                    {
+                        DebugLog($"MISMATCH: Tableau[{col}][{row}] UI shows empty, data shows {DescribeCard(expectedCard)}");
+                        isValid = false;
+                    }
+                    else if (!CardsEqual(uiControl.Card, expectedCard))
+                    {
+                        DebugLog($"MISMATCH: Tableau[{col}][{row}] UI shows {DescribeCard(uiControl.Card)}, data shows {DescribeCard(expectedCard)}");
+                        isValid = false;
+                    }
+                    else if (uiControl.Visibility != Visibility.Visible)
+                    {
+                        DebugLog($"MISMATCH: Tableau[{col}][{row}] has card {DescribeCard(expectedCard)} but control is not visible");
+                        isValid = false;
+                    }
+                }
+                
+                // Check for extra visible UI controls beyond the data
+                for (int row = tableauData.Count; row < tableauUi.Count; row++)
+                {
+                    CardUserControl uiControl = tableauUi[row];
+                    if (uiControl.Visibility == Visibility.Visible && uiControl.Card != null)
+                    {
+                        DebugLog($"MISMATCH: Tableau[{col}][{row}] UI shows {DescribeCard(uiControl.Card)}, but data has no card at this position");
+                        isValid = false;
+                    }
+                }
+            }
+
+            // Check Stock Pile
+            if (solitaireRules.StockPile.Count == 0)
+            {
+                if (StockPile.Card != null)
+                {
+                    DebugLog($"MISMATCH: StockPile UI shows {DescribeCard(StockPile.Card)}, data shows empty");
+                    isValid = false;
+                }
+            }
+            else
+            {
+                // Stock pile shows the back of cards, so we just check if it has any card when data is not empty
+                if (StockPile.Card == null && StockPile.Visibility == Visibility.Visible)
+                {
+                    DebugLog($"MISMATCH: StockPile UI shows empty but is visible, data has {solitaireRules.StockPile.Count} cards");
+                    isValid = false;
+                }
+            }
+
+            // Check Waste Pile
+            if (solitaireRules.WastePile.Count == 0)
+            {
+                if (WastePile.Card != null)
+                {
+                    DebugLog($"MISMATCH: WastePile UI shows {DescribeCard(WastePile.Card)}, data shows empty");
+                    isValid = false;
+                }
+            }
+            else
+            {
+                Card expectedTopCard = solitaireRules.WastePile[solitaireRules.WastePile.Count - 1];
+                if (WastePile.Card == null)
+                {
+                    DebugLog($"MISMATCH: WastePile UI shows empty, data shows {DescribeCard(expectedTopCard)}");
+                    isValid = false;
+                }
+                else if (!CardsEqual(WastePile.Card, expectedTopCard))
+                {
+                    DebugLog($"MISMATCH: WastePile UI shows {DescribeCard(WastePile.Card)}, data shows {DescribeCard(expectedTopCard)}");
+                    isValid = false;
+                }
+            }
+
+            if (isValid)
+            {
+                DebugLog("UI-Data synchronization: OK");
+            }
+            else
+            {
+                DebugLog("UI-Data synchronization: FAILED - discrepancies found");
+            }
+            
+            DebugLog("=== End Synchronization Check ===");
+            return isValid;
+        }
+
+        /// <summary>
+        /// Helper method to compare two cards for equality
+        /// </summary>
+        /// <param name="card1">First card to compare</param>
+        /// <param name="card2">Second card to compare</param>
+        /// <returns>True if cards are equal (same number and suite)</returns>
+        private bool CardsEqual(Card card1, Card card2)
+        {
+            if (card1 == null && card2 == null)
+            {
+                return true;
+            }
+            if (card1 == null || card2 == null)
+            {
+                return false;
+            }
+            return card1.Number == card2.Number && card1.Suite == card2.Suite;
         }
     }
 }
