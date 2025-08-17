@@ -146,7 +146,8 @@ namespace CardGames
                 return;
             }
 
-            if (e.LeftButton == MouseButtonState.Pressed && Card != null)
+            // Only allow starting a drag for face-up cards
+            if (e.LeftButton == MouseButtonState.Pressed && Card != null && IsFaceUp)
             {
                 _startPoint = e.GetPosition(this);
                 _isDragging = false;
@@ -155,7 +156,8 @@ namespace CardGames
 
         private void PicBack_MouseMove(object sender, MouseEventArgs e)
         {
-            if (e.LeftButton == MouseButtonState.Pressed && Card != null && !_isDragging)
+            // Only allow dragging for face-up cards
+            if (e.LeftButton == MouseButtonState.Pressed && Card != null && IsFaceUp && !_isDragging)
             {
                 Point currentPosition = e.GetPosition(this);
                 Vector diff = _startPoint - currentPosition;
