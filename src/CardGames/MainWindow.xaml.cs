@@ -917,6 +917,28 @@ namespace CardGames
             // Check if moving to other empty spaces (non-tableau)
             if (targetControl.Card == null)
             {
+                // Before rejecting, check if this might be an empty tableau column
+                // that wasn't detected by GetTableauColumnIndex
+                for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
+                {
+                    if (solitaireRules.TableauColumns[col].Count == 0 && 
+                        tableauControls[col].Count > 0 && 
+                        tableauControls[col][0] == targetControl)
+                    {
+                        // This is an empty tableau column - validate the move
+                        bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, col);
+                        DebugLog($" -> Empty tableau column[{col}] detected, canPlace={canPlace}");
+                        if (canPlace)
+                        {
+                            return "Valid";
+                        }
+                        else
+                        {
+                            return "Only Kings can be placed on empty tableau spaces";
+                        }
+                    }
+                }
+                
                 // This is not a tableau move to an empty space
                 DebugLog(" -> Target is empty, but not a tableau slot. Rejecting.");
                 return "Cannot place cards on this empty space";
