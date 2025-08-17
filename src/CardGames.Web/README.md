@@ -1,162 +1,96 @@
 # CardGames.Web
 
-A modern TypeScript/React implementation of classic card games, featuring clean architecture and comprehensive test coverage.
+ASP.NET Core web application with React frontend for the CardGames project.
 
-## Overview
+## Architecture
 
-This project provides a complete JavaScript/TypeScript translation of the C# CardGames.Core library, maintaining the same clean architecture principles while adding web-specific features.
-
-## Features
-
-- ✅ **Complete TypeScript Game Logic**: Full translation of Card, Deck, and SolitaireRules from C#
-- ✅ **Comprehensive Testing**: 58+ unit tests with 93%+ test coverage  
-- ✅ **React Integration**: Demonstrates integration with React components
-- ✅ **Type Safety**: Full TypeScript support with strict type checking
-- ✅ **Clean Architecture**: Separation of game logic from UI components
-- ✅ **CI/CD Integration**: Automated testing in GitHub Actions
+This project combines ASP.NET Core backend with a React frontend, providing:
+- **Backend**: ASP.NET Core Web API providing game logic endpoints
+- **Frontend**: React + TypeScript SPA with the same game implementation
+- **Integration**: Seamless ASP.NET Core + React integration with development proxy
 
 ## Project Structure
 
 ```
-src/
-├── core/                   # Core game logic (TypeScript)
-│   ├── Card.ts            # Playing card implementation
-│   ├── Deck.ts            # Deck management and shuffling
-│   └── SolitaireRules.ts  # Solitaire game rules and logic
-├── components/            # React UI components
-│   └── SolitaireGame.tsx  # Demo Solitaire component
-├── __tests__/            # Unit tests
-│   ├── Card.test.ts
-│   ├── Deck.test.ts
-│   ├── SolitaireRules.test.ts
-│   └── SolitaireGame.test.tsx
-└── index.ts              # Main exports
+CardGames.Web/
+├── Controllers/              # ASP.NET Core API controllers
+│   └── SolitaireController.cs
+├── Program.cs               # ASP.NET Core application startup
+├── CardGames.Web.csproj     # .NET project file
+└── ClientApp/               # React frontend application
+    ├── src/
+    │   ├── core/           # TypeScript game logic (mirrors C# implementation)
+    │   ├── components/     # React UI components
+    │   ├── __tests__/      # Jest + React Testing Library tests
+    │   ├── App.tsx         # Main React app component
+    │   └── index.tsx       # React app entry point
+    ├── public/             # Static assets
+    ├── package.json        # npm dependencies and scripts
+    └── tsconfig.json       # TypeScript configuration
 ```
 
-## Getting Started
+## Development
 
 ### Prerequisites
 
-- Node.js 18+ 
-- npm
-
-### Installation
-
-```bash
-npm install
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run tests in watch mode
-npm run test:watch
-```
+- .NET 8.0 SDK
+- Node.js 16+ with npm
 
 ### Building
 
 ```bash
-# Build TypeScript to JavaScript
-npm run build
+# Build the entire project (includes npm install and React build)
+dotnet build
+
+# Build just the ASP.NET Core project
+dotnet build --no-dependencies
+
+# Build just the React frontend
+cd ClientApp && npm run build
 ```
 
-## Core Game Logic
+### Running
 
-The core game logic is implemented in TypeScript and provides the same functionality as the C# version:
+```bash
+# Start the ASP.NET Core development server (includes React dev server proxy)
+dotnet run
 
-### Card Class
-- Represents playing cards with number/rank and suit
-- Provides color checking (red/black) and numeric value methods
-- Full equality comparison support
-
-### Deck Class  
-- Standard 52-card deck implementation
-- Fisher-Yates shuffle algorithm
-- Deal/add card functionality
-
-### SolitaireRules Class
-- Complete Klondike Solitaire rule implementation
-- Card placement validation for tableau and foundation piles
-- Stock/waste pile mechanics with auto-reset
-- Win condition detection
-
-## Example Usage
-
-```typescript
-import { SolitaireRules, Deck, Card, CardNumber, CardSuite } from './core';
-
-// Create and start a new game
-const game = new SolitaireRules();
-const deck = new Deck();
-deck.shuffle();
-game.dealCards(deck);
-
-// Check if a move is valid
-const card = new Card(CardNumber._7, CardSuite.Heart);
-const canPlace = game.canPlaceCardOnTableau(card, 0);
-
-// Draw from stock pile
-const success = game.drawFromStock();
-
-// Check win condition
-const isWon = game.isGameWon();
+# Or start React development server independently
+cd ClientApp && npm start
 ```
 
-## Testing
+### Testing
 
-The project includes comprehensive unit tests covering:
+```bash
+# Run .NET tests
+dotnet test
 
-- **Card functionality**: Creation, equality, color checking, numeric values
-- **Deck operations**: Shuffling, dealing, card management
-- **Solitaire rules**: All game logic, move validation, win conditions  
-- **React components**: UI interaction and state management
+# Run React/TypeScript tests
+cd ClientApp && npm test
 
-### Test Coverage
-- **Overall**: 93.68% statement coverage
-- **Core Logic**: 100% function coverage
-- **All Tests**: 58+ test cases covering edge cases and normal operations
+# Run React tests with coverage
+cd ClientApp && npm run test:coverage
+```
 
-## React Integration
+## API Endpoints
 
-The `SolitaireGame` component demonstrates how to integrate the TypeScript game engine with React:
+- `GET /api/solitaire/test` - Health check endpoint
+- `POST /api/solitaire/new-game` - Start a new Solitaire game
 
-- State management with React hooks
-- Real-time game statistics display
-- Interactive game controls
-- Type-safe component props and state
+## Features
 
-## CI/CD Integration
+- **Type-safe implementation**: Both C# and TypeScript implementations with strict typing
+- **Comprehensive testing**: 64 unit tests covering all game logic and UI components
+- **Clean architecture**: Separation between game logic and UI components
+- **Cross-platform**: Runs on any platform supporting .NET 8 and modern browsers
+- **Development integration**: Hot reload for both backend and frontend during development
 
-JavaScript tests are automatically run in GitHub Actions alongside the C# tests, ensuring both implementations remain synchronized and functional.
+## Testing Coverage
 
-## Architecture
+The project includes comprehensive test coverage:
+- **Card class**: 18 tests covering creation, equality, color checking, numeric values
+- **Deck class**: 14 tests covering shuffling, dealing, card management  
+- **SolitaireRules class**: 26 tests covering all game logic, move validation, win conditions
+- **React components**: 6 tests covering UI interaction and state management
 
-This implementation follows the same clean architecture principles as the C# version:
-
-- **Separation of Concerns**: Game logic is completely independent of UI
-- **Testability**: All game logic is unit tested without UI dependencies  
-- **Type Safety**: TypeScript provides compile-time type checking
-- **Immutability**: Game state changes are handled safely
-- **Single Responsibility**: Each class has a focused, single purpose
-
-## Future Enhancements
-
-Potential improvements for a full implementation:
-
-- Complete visual card rendering with CSS/SVG
-- Drag and drop functionality
-- Animations and transitions
-- Multiple game variants (Spider, FreeCell, etc.)
-- Multiplayer support
-- Save/load game state
-- Undo/redo functionality
-
-## License
-
-MIT License - see the main project LICENSE file for details.
+Total: **64 tests** ensuring reliability across both frontend and backend implementations.

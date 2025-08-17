@@ -4,7 +4,7 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "es6"
     ],
     "allowJs": true,
     "skipLibCheck": true,
@@ -17,19 +17,10 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": false,
-    "jsx": "react-jsx",
-    "outDir": "./dist",
-    "declaration": true,
-    "declarationDir": "./dist/types"
+    "noEmit": true,
+    "jsx": "react-jsx"
   },
   "include": [
-    "src/**/*",
-    "**/*.test.ts",
-    "**/*.test.tsx"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
+    "src"
   ]
 }
