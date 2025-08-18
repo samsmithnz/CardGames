@@ -20,11 +20,11 @@ namespace CardGames
     public partial class CardUserControl : UserControl
     {
         private Card _card;
-        public Card Card 
-        { 
+        public Card Card
+        {
             get { return _card; }
-            set 
-            { 
+            set
+            {
                 _card = value;
                 // Update visibility when card changes
                 UpdateVisibility();
@@ -102,7 +102,7 @@ namespace CardGames
             //lblTopLeftNumber.Text = card.Number.ToString().Replace("_", "");
             //lblSuite.Text = card.Suite.ToString();
             string fileName = "1920px-Playing_card_" + card.Suite.ToString().ToLower() + "_" + card.Number.ToString().Replace("_", "") + ".svg.png";
-            
+
             try
             {
                 PicCard.Source = new BitmapImage(new Uri($"Images/{fileName}", UriKind.Relative));
@@ -142,7 +142,7 @@ namespace CardGames
                 // The stock pile remains clickable through the underlying Grid element
                 PicBack.Visibility = Visibility.Hidden;
                 PicCard.Visibility = Visibility.Hidden;
-                
+
                 // For empty tableau drop targets, show a subtle background to indicate droppable area
                 // This helps users see where they can drop Kings on empty tableau columns
                 if (IsTableauDropTarget)
@@ -168,7 +168,7 @@ namespace CardGames
                 PicBack.Visibility = Visibility.Visible;
                 PicCard.Visibility = Visibility.Hidden;
             }
-            
+
             // Update debug visual indicators if debug mode is enabled
             UpdateDebugVisuals();
         }
@@ -197,13 +197,13 @@ namespace CardGames
             {
                 return false;
             }
-            
+
             // Check vertical bounds (limited by VisibleHeight)
             if (mousePosition.Y < 0 || mousePosition.Y > VisibleHeight)
             {
                 return false;
             }
-            
+
             return true;
         }
 
@@ -227,38 +227,50 @@ namespace CardGames
                     Colors.LimeGreen,   // Stack position 6
                     Colors.Purple       // Stack position 7+
                 };
-                
+
                 // Select color based on stack position, cycling through the array
                 Color borderColor = debugColors[StackPosition % debugColors.Length];
-                
+
                 // Calculate the actual rendered image size based on the card face and image aspect ratios
                 // Face-down images have different dimensions than face-up images
-                double actualImageWidth, actualImageHeight;
-                
+                double actualImageWidth = CardGames.Core.CardVisualConstants.CardWidth;
+                double actualImageHeight;
                 if (IsFaceUp)
                 {
-                    // Face-up cards: 1920×2400 aspect ratio (0.8)
-                    double faceUpAspectRatio = 1920.0 / 2400.0; // 0.8
-                    actualImageWidth = CardGames.Core.CardVisualConstants.CardWidth;
-                    actualImageHeight = actualImageWidth / faceUpAspectRatio; // 80 / 0.8 = 100px
+                    // 1920×2400 -> 0.8 aspect ratio
+                    double faceUpAspectRatio = 1920.0 / 2400.0;
+                    actualImageHeight = actualImageWidth / faceUpAspectRatio; // e.g., 80 / 0.8 = 100
                 }
                 else
                 {
-                    // Face-down cards: 755×1057 aspect ratio (~0.714)
-                    double faceDownAspectRatio = 755.0 / 1057.0; // ~0.714
-                    actualImageWidth = CardGames.Core.CardVisualConstants.CardWidth;
-                    actualImageHeight = actualImageWidth / faceDownAspectRatio; // 80 / 0.714 ≈ 112px
+                    // 755×1057 -> ~0.714 aspect ratio
+                    double faceDownAspectRatio = 755.0 / 1057.0;
+                    actualImageHeight = actualImageWidth / faceDownAspectRatio; // e.g., 80 / 0.714 ≈ 112
                 }
-                
-                // For stacked cards, the border height should be limited to the visible height
+
+                // Compute vertical padding added by Stretch=Uniform (image is centered vertically)
+                double controlHeight = CardGames.Core.CardVisualConstants.CardHeight; // e.g., 120
+                double verticalPadding = Math.Max(0.0, (controlHeight - actualImageHeight) / 2.0);
+
+                // For stacked cards, limit to the visible portion
                 double borderHeight = Math.Min(actualImageHeight, VisibleHeight);
-                
+
                 // Set up debug border rectangle to show actual clickable boundaries
                 DebugBorder.Width = actualImageWidth;
                 DebugBorder.Height = borderHeight;
                 DebugBorder.Stroke = new SolidColorBrush(borderColor);
+                DebugBorder.StrokeThickness = 1;
                 DebugBorder.Visibility = Visibility.Visible;
-                
+
+                // Align border with the image’s top edge and center horizontally
+                DebugBorder.HorizontalAlignment = HorizontalAlignment.Center;
+                DebugBorder.VerticalAlignment = VerticalAlignment.Top;
+                DebugBorder.Margin = new Thickness(0, Math.Round(verticalPadding), 0, 0);
+
+                // Improve pixel alignment of the stroke
+                DebugBorder.SnapsToDevicePixels = true;
+                RenderOptions.SetEdgeMode(DebugBorder, EdgeMode.Aliased);
+
                 // Add debug background to show draggable state, but only in visible area
                 if (IsFaceUp)
                 {
@@ -268,7 +280,7 @@ namespace CardGames
                 {
                     this.Background = new SolidColorBrush(Color.FromArgb(20, 255, 0, 0)); // Light red for non-draggable
                 }
-                
+
                 // Add a visual indicator to show the visible hit area
                 // This will help users see exactly where they can click
                 if (VisibleHeight < actualImageHeight)
@@ -277,7 +289,7 @@ namespace CardGames
                     RectangleGeometry clip = new RectangleGeometry();
                     clip.Rect = new Rect(0, 0, actualImageWidth, VisibleHeight);
                     this.Clip = clip;
-                    
+
                     LogDebug($"Debug: Visible hit area clipped to {actualImageWidth:F1} × {VisibleHeight:F1} (actual image: {actualImageWidth:F1} × {actualImageHeight:F1}), Color={borderColor}, FaceUp={IsFaceUp}");
                 }
                 else
@@ -302,14 +314,14 @@ namespace CardGames
         {
             Point mousePosition = e.GetPosition(this);
             LogDebug($"MouseDown - Button: {e.LeftButton}, ClickCount: {e.ClickCount}, IsFaceUp: {IsFaceUp}, Position: ({mousePosition.X:F1}, {mousePosition.Y:F1})");
-            
+
             // Check if the click is within the visible area
             if (!IsWithinVisibleArea(mousePosition))
             {
                 LogDebug($"MouseDown ignored - Click outside visible area (visible height: {VisibleHeight:F1})");
                 return;
             }
-            
+
             // Handle double-click using ClickCount since Image does not expose MouseDoubleClick in XAML
             if (e.LeftButton == MouseButtonState.Pressed && e.ClickCount == 2)
             {
@@ -339,27 +351,27 @@ namespace CardGames
             {
                 Point currentPosition = e.GetPosition(this);
                 Vector diff = _startPoint - currentPosition;
-                
+
                 double horizontalDistance = Math.Abs(diff.X);
                 double verticalDistance = Math.Abs(diff.Y);
                 double minHorizontal = SystemParameters.MinimumHorizontalDragDistance;
                 double minVertical = SystemParameters.MinimumVerticalDragDistance;
-                
+
                 LogDebug($"MouseMove - Current: ({currentPosition.X:F1}, {currentPosition.Y:F1}), " +
                         $"Distance: ({horizontalDistance:F1}, {verticalDistance:F1}), " +
                         $"MinRequired: ({minHorizontal:F1}, {minVertical:F1})");
-                
+
                 if (horizontalDistance > minHorizontal || verticalDistance > minVertical)
                 {
                     _isDragging = true;
                     LogDebug("Drag threshold exceeded - starting drag operation");
-                    
+
                     // Raise the drag started event
                     CardDragStarted?.Invoke(this, Card);
-                    
+
                     // Initiate drag and drop operation
                     DragDrop.DoDragDrop(this, Card, DragDropEffects.Move);
-                    
+
                     LogDebug("Drag operation completed");
                 }
             }
@@ -384,7 +396,7 @@ namespace CardGames
         private void PicBack_MouseUp(object sender, MouseButtonEventArgs e)
         {
             LogDebug($"MouseUp - Button: {e.LeftButton}, WasDragging: {_isDragging}, IsStockPile: {IsStockPile}");
-            
+
             // Handle single-click for stock pile when no drag occurred
             if (e.LeftButton == MouseButtonState.Released && !_isDragging && IsStockPile)
             {
@@ -393,7 +405,7 @@ namespace CardGames
                 StockPileClicked?.Invoke(this, EventArgs.Empty);
                 e.Handled = true;
             }
-            
+
             // Reset dragging state
             _isDragging = false;
         }
@@ -402,7 +414,7 @@ namespace CardGames
         {
             // Reset dragging state
             _isDragging = false;
-            
+
             if (IsStockPile)
             {
                 // For stock pile, raise the stock pile clicked event instead of flipping
@@ -423,18 +435,18 @@ namespace CardGames
         private void CardUserControl_DragEnter(object sender, DragEventArgs e)
         {
             LogDebug("DragEnter event triggered");
-            
+
             if (e.Data.GetDataPresent(typeof(Card)))
             {
                 Card draggedCard = (Card)e.Data.GetData(typeof(Card));
                 LogDebug($"DragEnter with card: {draggedCard.Number} of {draggedCard.Suite}s");
-                
+
                 // Request validation from parent
                 ValidateDropEventArgs args = new ValidateDropEventArgs(draggedCard, this);
                 ValidateDrop?.Invoke(this, args);
-                
+
                 LogDebug($"Drop validation result: {args.IsValid}");
-                
+
                 // Show visual indicators on all sides based on validation result
                 SolidColorBrush indicatorBrush;
                 if (args.IsValid)
@@ -447,19 +459,19 @@ namespace CardGames
                     indicatorBrush = new SolidColorBrush(Colors.LightCoral);
                     e.Effects = DragDropEffects.None;
                 }
-                
+
                 // Set all side indicators
                 LeftIndicator.Fill = indicatorBrush;
                 RightIndicator.Fill = indicatorBrush;
                 TopIndicator.Fill = indicatorBrush;
                 BottomIndicator.Fill = indicatorBrush;
-                
+
                 // Make indicators visible
                 LeftIndicator.Visibility = Visibility.Visible;
                 RightIndicator.Visibility = Visibility.Visible;
                 TopIndicator.Visibility = Visibility.Visible;
                 BottomIndicator.Visibility = Visibility.Visible;
-                
+
                 this.Opacity = 0.8;
             }
             else
@@ -486,13 +498,13 @@ namespace CardGames
         private void CardUserControl_DragLeave(object sender, DragEventArgs e)
         {
             LogDebug("DragLeave event triggered");
-            
+
             // Hide all side indicators when drag leaves the control
             LeftIndicator.Visibility = Visibility.Collapsed;
             RightIndicator.Visibility = Visibility.Collapsed;
             TopIndicator.Visibility = Visibility.Collapsed;
             BottomIndicator.Visibility = Visibility.Collapsed;
-            
+
             this.Opacity = 1.0;
             e.Handled = true;
         }
@@ -500,15 +512,15 @@ namespace CardGames
         private void CardUserControl_Drop(object sender, DragEventArgs e)
         {
             LogDebug("Drop event triggered");
-            
+
             // Hide all side indicators after drop
             LeftIndicator.Visibility = Visibility.Collapsed;
             RightIndicator.Visibility = Visibility.Collapsed;
             TopIndicator.Visibility = Visibility.Collapsed;
             BottomIndicator.Visibility = Visibility.Collapsed;
-            
+
             this.Opacity = 1.0;
-            
+
             if (e.Data.GetDataPresent(typeof(Card)))
             {
                 Card droppedCard = (Card)e.Data.GetData(typeof(Card));
