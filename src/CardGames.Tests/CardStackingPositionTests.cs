@@ -15,7 +15,7 @@ namespace CardGames.Tests
         public void TableauVerticalOffset_ShouldBeCorrectValue()
         {
             // Verify the constant that controls stacking offset
-            Assert.AreEqual(24.0, CardVisualConstants.TableauVerticalOffset, 
+            Assert.AreEqual(20.0, CardVisualConstants.TableauVerticalOffset, 
                 "TableauVerticalOffset should be 20 pixels for proper partial stacking");
         }
 
@@ -26,7 +26,7 @@ namespace CardGames.Tests
             double offset = CardVisualConstants.TableauVerticalOffset;
             
             // Simulate positions for a stack of 4 cards
-            double[] expectedPositions = { 0.0, 24.0, 48.0, 72.0 };
+            double[] expectedPositions = { 0.0, 20.0, 40.0, 60.0 };
             
             for (int i = 0; i < expectedPositions.Length; i++)
             {
@@ -69,10 +69,10 @@ namespace CardGames.Tests
             
             // Verify the calculated positions
             Assert.AreEqual(0.0, expectedCanvasTopPositions[0], "First card should be at Canvas.Top = 0");
-            Assert.AreEqual(24.0, expectedCanvasTopPositions[1], "Second card should be at Canvas.Top = 20");
-            Assert.AreEqual(48.0, expectedCanvasTopPositions[2], "Third card should be at Canvas.Top = 40");
-            Assert.AreEqual(72.0, expectedCanvasTopPositions[3], "Fourth card should be at Canvas.Top = 60");
-            Assert.AreEqual(96.0, expectedCanvasTopPositions[4], "Fifth card should be at Canvas.Top = 80");
+            Assert.AreEqual(20.0, expectedCanvasTopPositions[1], "Second card should be at Canvas.Top = 20");
+            Assert.AreEqual(40.0, expectedCanvasTopPositions[2], "Third card should be at Canvas.Top = 40");
+            Assert.AreEqual(60.0, expectedCanvasTopPositions[3], "Fourth card should be at Canvas.Top = 60");
+            Assert.AreEqual(80.0, expectedCanvasTopPositions[4], "Fifth card should be at Canvas.Top = 80");
             
             // Verify that cards don't overlap completely (proper spacing)
             for (int i = 1; i < numberOfCards; i++)

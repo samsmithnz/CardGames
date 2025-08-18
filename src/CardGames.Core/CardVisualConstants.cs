@@ -19,6 +19,6 @@ namespace CardGames.Core
         /// Vertical offset for tableau column card stacking to show rank and suit
         /// Increased by 20% to provide more vertical spacing (was 20.0)
         /// </summary>
-        public const double TableauVerticalOffset = 24.0;
+        public const double TableauVerticalOffset = 20.0;
     }
 }

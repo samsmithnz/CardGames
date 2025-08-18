@@ -16,8 +16,8 @@ namespace CardGames.Tests
         [TestMethod]
         public void CardVisualConstants_TableauVerticalOffset_ShouldBeCorrectValue()
         {
-            // Verify the tableau offset is still 24px for proper card stacking visibility
-            double expectedOffset = 24.0;
+            // Verify the tableau offset is still 20px for proper card stacking visibility
+            double expectedOffset = 20.0;
             double actualOffset = CardVisualConstants.TableauVerticalOffset;
             
             Assert.AreEqual(expectedOffset, actualOffset, 
