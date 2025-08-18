@@ -37,7 +37,7 @@ namespace CardGames.Tests
             double offset = CardVisualConstants.TableauVerticalOffset;
 
             // Assert
-            Assert.AreEqual(24.0, offset, "Tableau vertical offset should be 20.0 pixels");
+            Assert.AreEqual(20.0, offset, "Tableau vertical offset should be 20.0 pixels");
         }
 
         [TestMethod]
