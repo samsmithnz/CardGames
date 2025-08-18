@@ -231,9 +231,31 @@ namespace CardGames
                 // Select color based on stack position, cycling through the array
                 Color borderColor = debugColors[StackPosition % debugColors.Length];
                 
+                // Calculate the actual rendered image size based on the card face and image aspect ratios
+                // Face-down images have different dimensions than face-up images
+                double actualImageWidth, actualImageHeight;
+                
+                if (IsFaceUp)
+                {
+                    // Face-up cards: 1920×2400 aspect ratio (0.8)
+                    double faceUpAspectRatio = 1920.0 / 2400.0; // 0.8
+                    actualImageWidth = CardGames.Core.CardVisualConstants.CardWidth;
+                    actualImageHeight = actualImageWidth / faceUpAspectRatio; // 80 / 0.8 = 100px
+                }
+                else
+                {
+                    // Face-down cards: 755×1057 aspect ratio (~0.714)
+                    double faceDownAspectRatio = 755.0 / 1057.0; // ~0.714
+                    actualImageWidth = CardGames.Core.CardVisualConstants.CardWidth;
+                    actualImageHeight = actualImageWidth / faceDownAspectRatio; // 80 / 0.714 ≈ 112px
+                }
+                
+                // For stacked cards, the border height should be limited to the visible height
+                double borderHeight = Math.Min(actualImageHeight, VisibleHeight);
+                
                 // Set up debug border rectangle to show actual clickable boundaries
-                DebugBorder.Width = CardGames.Core.CardVisualConstants.CardWidth;
-                DebugBorder.Height = VisibleHeight;
+                DebugBorder.Width = actualImageWidth;
+                DebugBorder.Height = borderHeight;
                 DebugBorder.Stroke = new SolidColorBrush(borderColor);
                 DebugBorder.Visibility = Visibility.Visible;
                 
@@ -249,19 +271,19 @@ namespace CardGames
                 
                 // Add a visual indicator to show the visible hit area
                 // This will help users see exactly where they can click
-                if (VisibleHeight < CardGames.Core.CardVisualConstants.CardHeight)
+                if (VisibleHeight < actualImageHeight)
                 {
                     // Create a clip to show only the visible portion
                     RectangleGeometry clip = new RectangleGeometry();
-                    clip.Rect = new Rect(0, 0, this.Width, VisibleHeight);
+                    clip.Rect = new Rect(0, 0, actualImageWidth, VisibleHeight);
                     this.Clip = clip;
                     
-                    LogDebug($"Debug: Visible hit area clipped to {this.Width:F1} × {VisibleHeight:F1} (was {this.Width:F1} × {CardGames.Core.CardVisualConstants.CardHeight:F1}), Color={borderColor}");
+                    LogDebug($"Debug: Visible hit area clipped to {actualImageWidth:F1} × {VisibleHeight:F1} (actual image: {actualImageWidth:F1} × {actualImageHeight:F1}), Color={borderColor}, FaceUp={IsFaceUp}");
                 }
                 else
                 {
                     this.Clip = null; // Full card is visible
-                    LogDebug($"Debug: Full card visible {this.Width:F1} × {VisibleHeight:F1}, Color={borderColor}");
+                    LogDebug($"Debug: Full card visible {actualImageWidth:F1} × {actualImageHeight:F1}, Color={borderColor}, FaceUp={IsFaceUp}");
                 }
             }
             else if (!IsTableauDropTarget)
