@@ -79,6 +79,12 @@ namespace CardGames
         public double VisibleHeight { get; set; } = CardGames.Core.CardVisualConstants.CardHeight;
 
         /// <summary>
+        /// Gets or sets the stack position for this card (0=bottom, higher numbers=closer to top).
+        /// Used to determine debug border color to distinguish overlapping cards.
+        /// </summary>
+        public int StackPosition { get; set; } = 0;
+
+        /// <summary>
         /// Event raised for debug logging to help troubleshoot drag and drop issues
         /// </summary>
         public event EventHandler<string> DebugLog;
@@ -208,9 +214,27 @@ namespace CardGames
         {
             if (IsDebugMode && Card != null)
             {
+                // Define a set of colors to cycle through for stacked cards
+                // This makes it easier to distinguish overlapping debug borders
+                Color[] debugColors = new Color[]
+                {
+                    Colors.Yellow,      // Stack position 0 (bottom)
+                    Colors.Orange,      // Stack position 1
+                    Colors.Red,         // Stack position 2
+                    Colors.Magenta,     // Stack position 3
+                    Colors.Blue,        // Stack position 4
+                    Colors.Cyan,        // Stack position 5
+                    Colors.LimeGreen,   // Stack position 6
+                    Colors.Purple       // Stack position 7+
+                };
+                
+                // Select color based on stack position, cycling through the array
+                Color borderColor = debugColors[StackPosition % debugColors.Length];
+                
                 // Set up debug border rectangle to show actual clickable boundaries
                 DebugBorder.Width = CardGames.Core.CardVisualConstants.CardWidth;
                 DebugBorder.Height = VisibleHeight;
+                DebugBorder.Stroke = new SolidColorBrush(borderColor);
                 DebugBorder.Visibility = Visibility.Visible;
                 
                 // Add debug background to show draggable state, but only in visible area
@@ -232,11 +256,12 @@ namespace CardGames
                     clip.Rect = new Rect(0, 0, this.Width, VisibleHeight);
                     this.Clip = clip;
                     
-                    LogDebug($"Debug: Visible hit area clipped to {this.Width:F1} × {VisibleHeight:F1} (was {this.Width:F1} × {CardGames.Core.CardVisualConstants.CardHeight:F1})");
+                    LogDebug($"Debug: Visible hit area clipped to {this.Width:F1} × {VisibleHeight:F1} (was {this.Width:F1} × {CardGames.Core.CardVisualConstants.CardHeight:F1}), Color={borderColor}");
                 }
                 else
                 {
                     this.Clip = null; // Full card is visible
+                    LogDebug($"Debug: Full card visible {this.Width:F1} × {VisibleHeight:F1}, Color={borderColor}");
                 }
             }
             else if (!IsTableauDropTarget)

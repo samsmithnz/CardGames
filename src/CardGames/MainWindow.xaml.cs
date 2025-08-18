@@ -219,6 +219,7 @@ namespace CardGames
             StockPile.IsStockPile = true;
             StockPile.StockPileClicked += OnStockPileClicked;
             StockPile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for stock pile
+            StockPile.StackPosition = 0; // Non-stacked cards use position 0
 
             // Waste pile
             WastePile.CardDragStarted += OnCardDragStarted;
@@ -227,6 +228,7 @@ namespace CardGames
             WastePile.CardClicked += OnCardClicked;
             WastePile.DebugLog += OnCardDebugLog;
             WastePile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for waste pile
+            WastePile.StackPosition = 0; // Non-stacked cards use position 0
 
             // Foundations
             foreach (CardUserControl foundation in foundationControls)
@@ -237,6 +239,7 @@ namespace CardGames
                 foundation.CardClicked += OnCardClicked;
                 foundation.DebugLog += OnCardDebugLog;
                 foundation.VisibleHeight = CardVisualConstants.CardHeight; // Full height for foundation piles
+                foundation.StackPosition = 0; // Non-stacked cards use position 0
             }
 
             // Tableau columns
@@ -250,6 +253,7 @@ namespace CardGames
                     control.CardClicked += OnCardClicked;
                     control.DebugLog += OnCardDebugLog;
                     control.VisibleHeight = CardVisualConstants.CardHeight; // Initialize to full height, will be adjusted during layout
+                    control.StackPosition = 0; // Initialize to 0, will be set during layout
                 }
             }
         }
@@ -916,7 +920,10 @@ namespace CardGames
                     bool isLastCard = (row == columnCards.Count - 1);
                     control.VisibleHeight = isLastCard ? CardVisualConstants.CardHeight : CardVisualConstants.TableauVerticalOffset;
                     
-                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}, VisibleHeight={control.VisibleHeight}");
+                    // Set stack position for debug border coloring (helps distinguish overlapping borders)
+                    control.StackPosition = row;
+                    
+                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}, VisibleHeight={control.VisibleHeight}, StackPos={row}");
                 }
                 else
                 {
