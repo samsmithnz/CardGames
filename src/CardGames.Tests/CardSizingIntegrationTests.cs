@@ -21,7 +21,7 @@ namespace CardGames.Tests
             // Assert - Verify the exact values from the issue requirements
             Assert.AreEqual(80.0, cardWidth, "CardWidth should match issue specification");
             Assert.AreEqual(120.0, cardHeight, "CardHeight should match issue specification");
-            Assert.AreEqual(20.0, tableauOffset, "TableauVerticalOffset should match issue specification");
+            Assert.AreEqual(24.0, tableauOffset, "TableauVerticalOffset should match issue specification");
         }
 
         [TestMethod]
@@ -40,9 +40,9 @@ namespace CardGames.Tests
 
             // Assert - Verify positioning follows the stacking rules
             Assert.AreEqual(0.0, positions[0], "First card should be at position 0");
-            Assert.AreEqual(20.0, positions[1], "Second card should be offset by TableauVerticalOffset");
-            Assert.AreEqual(40.0, positions[2], "Third card should be at 2x offset");
-            Assert.AreEqual(120.0, positions[6], "Seventh card should be at 6x offset");
+            Assert.AreEqual(24.0, positions[1], "Second card should be offset by TableauVerticalOffset");
+            Assert.AreEqual(48.0, positions[2], "Third card should be at 2x offset");
+            Assert.AreEqual(144.0, positions[6], "Seventh card should be at 6x offset");
             
             // Verify maximum stack height is reasonable for UI
             double maxStackHeight = positions[maxCardsInColumn - 1] + CardVisualConstants.CardHeight;

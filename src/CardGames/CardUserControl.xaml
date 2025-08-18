@@ -7,7 +7,7 @@
              xmlns:core="clr-namespace:CardGames.Core;assembly=CardGames.Core"
              mc:Ignorable="d"
              Width="{x:Static core:CardVisualConstants.CardWidth}"
-             Height="{x:Static core:CardVisualConstants.CardHeight}"
+             Height="100"
              UseLayoutRounding="True"
              SnapsToDevicePixels="True"
              AllowDrop="True"
@@ -36,7 +36,7 @@
                VerticalAlignment="Stretch"
                MouseLeftButtonDown="PicBack_MouseDown"
                MouseMove="PicBack_MouseMove"
-               MouseLeftButtonUp="PicBack_MouseUp"/>
+               MouseLeftButtonUp="PicBack_MouseUp" Height="105"/>
         
         <!-- Left side visual indicator -->
         <Rectangle x:Name="LeftIndicator"
@@ -68,6 +68,15 @@
                    HorizontalAlignment="Stretch"
                    VerticalAlignment="Bottom"
                    Fill="Transparent"
+                   Visibility="Collapsed"/>
+        
+        <!-- Debug border rectangle to show actual hit area -->
+        <Rectangle x:Name="DebugBorder"
+                   Stroke="Yellow"
+                   StrokeThickness="2"
+                   Fill="Transparent"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
                    Visibility="Collapsed"/>
     </Grid>
 </UserControl>
