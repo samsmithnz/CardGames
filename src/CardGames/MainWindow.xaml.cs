@@ -39,6 +39,9 @@ namespace CardGames
 
         // Debug toggle
         private bool debugEnabled = true;
+        
+        // Drag and drop debug mode toggle
+        private bool dragDropDebugMode = false;
 
         public MainWindow()
         {
@@ -54,6 +57,57 @@ namespace CardGames
             if (debugEnabled)
             {
                 Debug.WriteLine($"[DEBUG] {message}");
+            }
+        }
+
+        /// <summary>
+        /// Handle debug log messages from card controls
+        /// </summary>
+        private void OnCardDebugLog(object sender, string message)
+        {
+            CardUserControl control = sender as CardUserControl;
+            string controlDescription = DescribeControl(control);
+            DebugLog($"CardControl({controlDescription}): {message}");
+        }
+
+        /// <summary>
+        /// Toggle drag and drop debug mode for troubleshooting
+        /// </summary>
+        private void ToggleDragDropDebugMode()
+        {
+            dragDropDebugMode = !dragDropDebugMode;
+            
+            // Apply debug mode to all card controls
+            SetDragDropDebugModeForAllControls(dragDropDebugMode);
+            
+            StatusLabel.Content = $"Drag & Drop Debug Mode: {(dragDropDebugMode ? "ON" : "OFF")}";
+            DebugLog($"Drag & Drop Debug Mode toggled to: {dragDropDebugMode}");
+        }
+
+        /// <summary>
+        /// Set debug mode for all card controls
+        /// </summary>
+        private void SetDragDropDebugModeForAllControls(bool enabled)
+        {
+            // Stock pile
+            StockPile.IsDebugMode = enabled;
+            
+            // Waste pile
+            WastePile.IsDebugMode = enabled;
+            
+            // Foundation piles
+            foreach (CardUserControl foundation in foundationControls)
+            {
+                foundation.IsDebugMode = enabled;
+            }
+            
+            // Tableau columns
+            foreach (List<CardUserControl> column in tableauControls)
+            {
+                foreach (CardUserControl control in column)
+                {
+                    control.IsDebugMode = enabled;
+                }
             }
         }
 
@@ -161,14 +215,20 @@ namespace CardGames
             StockPile.CardDropped += OnCardDropped;
             StockPile.ValidateDrop += OnValidateDrop;
             StockPile.CardClicked += OnCardClicked;
+            StockPile.DebugLog += OnCardDebugLog;
             StockPile.IsStockPile = true;
             StockPile.StockPileClicked += OnStockPileClicked;
+            StockPile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for stock pile
+            StockPile.StackPosition = 0; // Non-stacked cards use position 0
 
             // Waste pile
             WastePile.CardDragStarted += OnCardDragStarted;
             WastePile.CardDropped += OnCardDropped;
             WastePile.ValidateDrop += OnValidateDrop;
             WastePile.CardClicked += OnCardClicked;
+            WastePile.DebugLog += OnCardDebugLog;
+            WastePile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for waste pile
+            WastePile.StackPosition = 0; // Non-stacked cards use position 0
 
             // Foundations
             foreach (CardUserControl foundation in foundationControls)
@@ -177,6 +237,9 @@ namespace CardGames
                 foundation.CardDropped += OnCardDropped;
                 foundation.ValidateDrop += OnValidateDrop;
                 foundation.CardClicked += OnCardClicked;
+                foundation.DebugLog += OnCardDebugLog;
+                foundation.VisibleHeight = CardVisualConstants.CardHeight; // Full height for foundation piles
+                foundation.StackPosition = 0; // Non-stacked cards use position 0
             }
 
             // Tableau columns
@@ -188,6 +251,9 @@ namespace CardGames
                     control.CardDropped += OnCardDropped;
                     control.ValidateDrop += OnValidateDrop;
                     control.CardClicked += OnCardClicked;
+                    control.DebugLog += OnCardDebugLog;
+                    control.VisibleHeight = CardVisualConstants.CardHeight; // Initialize to full height, will be adjusted during layout
+                    control.StackPosition = 0; // Initialize to 0, will be set during layout
                 }
             }
         }
@@ -849,7 +915,15 @@ namespace CardGames
                     double topPosition = row * CardVisualConstants.TableauVerticalOffset;
                     Canvas.SetTop(control, topPosition);
                     Panel.SetZIndex(control, row);
-                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}");
+                    
+                    // Set visible height for hit testing: last card gets full height, others get only the offset
+                    bool isLastCard = (row == columnCards.Count - 1);
+                    control.VisibleHeight = isLastCard ? CardVisualConstants.CardHeight : CardVisualConstants.TableauVerticalOffset;
+                    
+                    // Set stack position for debug border coloring (helps distinguish overlapping borders)
+                    control.StackPosition = row;
+                    
+                    DebugLog($"  Card[{row}] = {DescribeCard(card)}, faceUp={faceUp}, Canvas.Top={topPosition}, VisibleHeight={control.VisibleHeight}, StackPos={row}");
                 }
                 else
                 {
@@ -861,6 +935,7 @@ namespace CardGames
                         control.IsFaceUp = false;
                         control.IsTableauDropTarget = true; // Mark as drop target for visual styling
                         control.Visibility = Visibility.Visible; // keep visible to accept drops
+                        control.VisibleHeight = CardVisualConstants.CardHeight; // Full height for empty drop targets
                         Canvas.SetTop(control, 0);
                         Panel.SetZIndex(control, 0);
                         DebugLog("  Empty column -> keeping row 0 control visible for drop target");
@@ -897,6 +972,8 @@ namespace CardGames
                 control.CardDropped += OnCardDropped;
                 control.ValidateDrop += OnValidateDrop;
                 control.CardClicked += OnCardClicked;
+                control.DebugLog += OnCardDebugLog;
+                control.IsDebugMode = dragDropDebugMode; // Apply current debug mode state
                 canvas.Children.Add(control);
                 controls.Add(control);
             }
@@ -1459,6 +1536,19 @@ namespace CardGames
                 return false;
             }
             return card1.Number == card2.Number && card1.Suite == card2.Suite;
+        }
+
+        /// <summary>
+        /// Handle key press events for debug mode toggle and other shortcuts
+        /// </summary>
+        private void MainWindow_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Ctrl+D to toggle drag and drop debug mode
+            if (e.Key == Key.D && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+            {
+                ToggleDragDropDebugMode();
+                e.Handled = true;
+            }
         }
     }
 }
