@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace CardGames.Core
@@ -11,12 +13,12 @@ namespace CardGames.Core
     public class SolitaireRules
     {
         /// <summary>
-        /// The seven tableau columns where cards are initially dealt and can be built in descending order with alternating colors
+        /// The tableau columns where cards are initially dealt and can be built in descending order with alternating colors
         /// </summary>
         public List<List<Card>> TableauColumns { get; private set; }
 
         /// <summary>
-        /// The four foundation piles where cards are built up by suit from Ace to King
+        /// The foundation piles where cards are built up by suit from Ace to King
         /// </summary>
         public List<List<Card>> FoundationPiles { get; private set; }
 
@@ -31,24 +33,98 @@ namespace CardGames.Core
         public List<Card> WastePile { get; private set; }
 
         /// <summary>
-        /// Initializes a new Solitaire game with empty game state
+        /// Configuration defining the rules and setup for this game variant
         /// </summary>
-        public SolitaireRules()
+        public GameDefinition GameConfig { get; private set; }
+
+        /// <summary>
+        /// Initializes a new Solitaire game with empty game state using default Klondike Solitaire configuration
+        /// </summary>
+        public SolitaireRules() : this("Klondike Solitaire")
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new Solitaire game with empty game state using the specified game configuration
+        /// </summary>
+        /// <param name="gameName">Name of the game variant to use (e.g., "Klondike Solitaire", "Freecell")</param>
+        public SolitaireRules(string gameName)
+        {
+            GameConfig = LoadGameConfiguration(gameName);
+            InitializePiles();
+        }
+
+        /// <summary>
+        /// Initializes a new Solitaire game with empty game state using the provided game configuration
+        /// </summary>
+        /// <param name="gameConfig">Game configuration to use</param>
+        public SolitaireRules(GameDefinition gameConfig)
+        {
+            GameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
+            InitializePiles();
+        }
+
+        /// <summary>
+        /// Initializes the game piles based on the current configuration
+        /// </summary>
+        private void InitializePiles()
         {
             TableauColumns = new List<List<Card>>();
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < GameConfig.Piles.Tableau; i++)
             {
                 TableauColumns.Add(new List<Card>());
             }
 
             FoundationPiles = new List<List<Card>>();
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < GameConfig.Piles.Foundation; i++)
             {
                 FoundationPiles.Add(new List<Card>());
             }
 
             StockPile = new List<Card>();
             WastePile = new List<Card>();
+        }
+
+        /// <summary>
+        /// Loads game configuration from embedded JSON resource
+        /// </summary>
+        /// <param name="gameName">Name of the game variant to load</param>
+        /// <returns>Game configuration</returns>
+        private static GameDefinition LoadGameConfiguration(string gameName)
+        {
+            string configJson = LoadEmbeddedConfigurationJson();
+            SolitaireGameConfig config = SolitaireGameConfig.FromJson(configJson);
+            
+            GameDefinition gameConfig = config.FindGame(gameName);
+            if (gameConfig == null)
+            {
+                throw new ArgumentException($"Game configuration not found for: {gameName}", nameof(gameName));
+            }
+
+            return gameConfig;
+        }
+
+        /// <summary>
+        /// Loads the embedded JSON configuration file
+        /// </summary>
+        /// <returns>JSON configuration content</returns>
+        private static string LoadEmbeddedConfigurationJson()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            string resourceName = "CardGames.Core.solitaire-config.json";
+            
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                {
+                    throw new InvalidOperationException($"Could not find embedded resource: {resourceName}");
+                }
+
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
         }
 
         /// <summary>
@@ -76,13 +152,18 @@ namespace CardGames.Core
 
             int cardIndex = 0;
 
-            // Deal cards to tableau columns (1 to first column, 2 to second, etc.)
-            for (int column = 0; column < 7; column++)
+            // Deal cards to tableau columns based on configuration
+            List<int> tableauLayout = GameConfig.InitialLayout.Tableau;
+            for (int column = 0; column < GameConfig.Piles.Tableau && column < tableauLayout.Count; column++)
             {
-                for (int card = 0; card <= column; card++)
+                int cardsInColumn = tableauLayout[column];
+                for (int card = 0; card < cardsInColumn; card++)
                 {
-                    TableauColumns[column].Add(deck.Cards[cardIndex]);
-                    cardIndex++;
+                    if (cardIndex < deck.Cards.Count)
+                    {
+                        TableauColumns[column].Add(deck.Cards[cardIndex]);
+                        cardIndex++;
+                    }
                 }
             }
 
@@ -97,56 +178,80 @@ namespace CardGames.Core
         /// Checks if a card can be placed on a tableau column
         /// </summary>
         /// <param name="card">The card to place</param>
-        /// <param name="columnIndex">The tableau column index (0-6)</param>
+        /// <param name="columnIndex">The tableau column index</param>
         /// <returns>True if the move is valid, false otherwise</returns>
         public bool CanPlaceCardOnTableau(Card card, int columnIndex)
         {
-            if (columnIndex < 0 || columnIndex >= 7 || card == null)
+            if (columnIndex < 0 || columnIndex >= GameConfig.Piles.Tableau || card == null)
             {
                 return false;
             }
 
             List<Card> column = TableauColumns[columnIndex];
 
-            // Empty column can only accept Kings
+            // Empty column rules based on configuration
             if (column.Count == 0)
             {
-                return card.Number == Card.CardNumber.K;
+                if (GameConfig.MovementRules.EmptyTableau.Contains("kings only"))
+                {
+                    return card.Number == Card.CardNumber.K;
+                }
+                else if (GameConfig.MovementRules.EmptyTableau.Contains("any card"))
+                {
+                    return true;
+                }
+                return false;
             }
 
             // Get the top card of the column
             Card topCard = column[column.Count - 1];
 
-            // Check if card is one rank lower and opposite color
-            return IsOneRankLower(card.Number, topCard.Number) && IsOppositeColor(card, topCard);
+            // Check movement rules based on configuration
+            if (GameConfig.MovementRules.TableauToTableau.Contains("descending") && 
+                GameConfig.MovementRules.TableauToTableau.Contains("alternating colors"))
+            {
+                return IsOneRankLower(card.Number, topCard.Number) && IsOppositeColor(card, topCard);
+            }
+
+            return false;
         }
 
         /// <summary>
         /// Checks if a card can be placed on a foundation pile
         /// </summary>
         /// <param name="card">The card to place</param>
-        /// <param name="foundationIndex">The foundation pile index (0-3)</param>
+        /// <param name="foundationIndex">The foundation pile index</param>
         /// <returns>True if the move is valid, false otherwise</returns>
         public bool CanPlaceCardOnFoundation(Card card, int foundationIndex)
         {
-            if (foundationIndex < 0 || foundationIndex >= 4 || card == null)
+            if (foundationIndex < 0 || foundationIndex >= GameConfig.Piles.Foundation || card == null)
             {
                 return false;
             }
 
             List<Card> foundation = FoundationPiles[foundationIndex];
 
-            // Empty foundation can only accept Aces
+            // Empty foundation rules based on configuration
             if (foundation.Count == 0)
             {
-                return card.Number == Card.CardNumber.A;
+                if (GameConfig.MovementRules.EmptyFoundation.Contains("aces only"))
+                {
+                    return card.Number == Card.CardNumber.A;
+                }
+                return false;
             }
 
             // Get the top card of the foundation
             Card topCard = foundation[foundation.Count - 1];
 
-            // Check if card is same suit and one rank higher
-            return card.Suite == topCard.Suite && IsOneRankHigher(card.Number, topCard.Number);
+            // Check movement rules based on configuration
+            if (GameConfig.MovementRules.TableauToFoundation.Contains("ascending") && 
+                GameConfig.MovementRules.TableauToFoundation.Contains("same suit"))
+            {
+                return card.Suite == topCard.Suite && IsOneRankHigher(card.Number, topCard.Number);
+            }
+
+            return false;
         }
 
         /// <summary>
