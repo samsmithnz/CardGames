@@ -244,24 +244,33 @@ namespace CardGames.Tests
         }
 
         [TestMethod]
-        public void SolitaireRules_FreecellConfiguration_ShouldCreateCorrectPileStructure()
+        public void SolitaireRules_FreecellUIConfiguration_ShouldHaveCorrectSettings()
         {
-            // Arrange & Act
-            SolitaireRules rules = new SolitaireRules("Freecell");
+            // Arrange & Act - Create Freecell rules
+            SolitaireRules freecellRules = new SolitaireRules("Freecell");
 
-            // Assert
-            Assert.AreEqual(8, rules.TableauColumns.Count, "Freecell should have 8 tableau columns");
-            Assert.AreEqual(4, rules.FoundationPiles.Count, "Freecell should have 4 foundation piles");
-            Assert.IsNotNull(rules.StockPile, "Stock pile should exist");
-            Assert.IsNotNull(rules.WastePile, "Waste pile should exist");
-            Assert.IsNotNull(rules.FreeCells, "Free cells should exist");
-            Assert.AreEqual(4, rules.FreeCells.Count, "Freecell should have 4 free cells");
-
-            // Verify all free cells are initially empty (null)
-            for (int i = 0; i < rules.FreeCells.Count; i++)
+            // Assert - Verify Freecell-specific UI requirements
+            Assert.AreEqual(4, freecellRules.FreeCells.Count, "Freecell should have 4 free cells for UI");
+            Assert.AreEqual(8, freecellRules.TableauColumns.Count, "Freecell should have 8 tableau columns for UI");
+            Assert.AreEqual(0, freecellRules.GameConfig.Piles.Waste, "Freecell should have 0 waste piles (hidden in UI)");
+            Assert.AreEqual(4, freecellRules.GameConfig.Piles.Freecells, "Freecell config should specify 4 freecells");
+            
+            // Verify free cells are properly initialized as empty
+            for (int i = 0; i < freecellRules.FreeCells.Count; i++)
             {
-                Assert.IsNull(rules.FreeCells[i], $"Free cell {i} should be initially empty");
+                Assert.IsNull(freecellRules.FreeCells[i], $"Free cell {i} should start empty");
+                Assert.IsTrue(freecellRules.CanPlaceCardInFreeCell(i), $"Should be able to place card in empty free cell {i}");
             }
+            
+            // Verify that free cell functionality works
+            Card testCard = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Spade };
+            Assert.IsTrue(freecellRules.PlaceCardInFreeCell(testCard, 0), "Should be able to place card in free cell");
+            Assert.IsFalse(freecellRules.CanPlaceCardInFreeCell(0), "Should not be able to place another card in occupied free cell");
+            
+            Card retrievedCard = freecellRules.GetCardFromFreeCell(0);
+            Assert.IsNotNull(retrievedCard, "Should retrieve the placed card");
+            Assert.AreEqual(Card.CardNumber.A, retrievedCard.Number, "Retrieved card should be ace");
+            Assert.AreEqual(Card.CardSuite.Spade, retrievedCard.Suite, "Retrieved card should be spades");
         }
 
         [TestMethod]
