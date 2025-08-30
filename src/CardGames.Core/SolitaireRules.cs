@@ -444,5 +444,71 @@ namespace CardGames.Core
             }
             return count;
         }
+
+        /// <summary>
+        /// Gets the number of empty tableau columns available
+        /// </summary>
+        /// <returns>Count of empty tableau columns</returns>
+        public int GetEmptyTableauColumnCount()
+        {
+            int count = 0;
+            for (int i = 0; i < TableauColumns.Count; i++)
+            {
+                if (TableauColumns[i].Count == 0)
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Calculates the maximum number of cards that can be moved as a sequence in FreeCell
+        /// based on available free cells and empty tableau columns.
+        /// Formula: C = 2^M × (N+1) where M = empty tableau columns, N = empty free cells
+        /// </summary>
+        /// <returns>Maximum number of cards that can be moved as a sequence</returns>
+        public int CalculateMaxSequenceMoveSize()
+        {
+            int emptyFreeCells = GetEmptyFreeCellCount();
+            int emptyTableauColumns = GetEmptyTableauColumnCount();
+            
+            // Formula: C = 2^M × (N+1)
+            int result = (int)Math.Pow(2, emptyTableauColumns) * (emptyFreeCells + 1);
+            
+            return result;
+        }
+
+        /// <summary>
+        /// Validates if a sequence of cards can be moved based on FreeCell rules.
+        /// For FreeCell games, the number of cards that can be moved is limited by available free space.
+        /// </summary>
+        /// <param name="sequenceSize">Number of cards in the sequence to move</param>
+        /// <param name="targetColumnIndex">Target tableau column index, or -1 if not moving to tableau</param>
+        /// <returns>True if the sequence move is valid, false otherwise</returns>
+        public bool CanMoveCardSequence(int sequenceSize, int targetColumnIndex = -1)
+        {
+            // For non-FreeCell games, allow any sequence move (existing behavior)
+            if (GameConfig == null || !GameConfig.GameName.Contains("Freecell"))
+            {
+                return true;
+            }
+            
+            // Single card moves are always allowed
+            if (sequenceSize <= 1)
+            {
+                return true;
+            }
+            
+            int maxMoveableCards = CalculateMaxSequenceMoveSize();
+            
+            // If moving to an empty tableau column, the maximum is reduced by half
+            if (targetColumnIndex >= 0 && TableauColumns[targetColumnIndex].Count == 0)
+            {
+                maxMoveableCards = maxMoveableCards / 2;
+            }
+            
+            return sequenceSize <= maxMoveableCards;
+        }
     }
 }

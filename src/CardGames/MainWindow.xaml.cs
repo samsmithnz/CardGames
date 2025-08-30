@@ -1260,18 +1260,23 @@ namespace CardGames
                 
                 // This is a tableau move - use SolitaireRules validation
                 bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, targetColumnIndex);
+                
+                // For FreeCell games, also validate sequence move size
+                bool canMoveSequence = solitaireRules.CanMoveCardSequence(cardsToMove.Count, targetColumnIndex);
+                
                 // Gather current top card info
                 List<Card> columnCards = solitaireRules.TableauColumns[targetColumnIndex];
                 Card top = columnCards.Count > 0 ? columnCards[columnCards.Count - 1] : null;
                 bool rankOk = top == null ? (card.Number == Card.CardNumber.K) : IsOneRankLower(card.Number, top.Number);
                 bool colorOk = top == null ? true : IsOppositeColor(card, top);
-                DebugLog($" -> Tableau[{targetColumnIndex}] top={DescribeCard(top)} canPlace={canPlace} rankOk={rankOk} colorOk={colorOk} sequenceSize={cardsToMove.Count}");
+                DebugLog($" -> Tableau[{targetColumnIndex}] top={DescribeCard(top)} canPlace={canPlace} rankOk={rankOk} colorOk={colorOk} sequenceSize={cardsToMove.Count} canMoveSequence={canMoveSequence}");
                 DebugLog($" -> Column has {columnCards.Count} cards, targetControl.Card={DescribeCard(targetControl.Card)}");
-                if (canPlace)
+                
+                if (canPlace && canMoveSequence)
                 {
                     return "Valid";
                 }
-                else
+                else if (!canPlace)
                 {
                     // Provide specific error message for empty vs non-empty tableau columns
                     if (columnCards.Count == 0)
@@ -1282,6 +1287,16 @@ namespace CardGames
                     {
                         return $"{card.Number} cannot be placed on {top.Number} - must be one rank lower and opposite color";
                     }
+                }
+                else if (!canMoveSequence)
+                {
+                    // Sequence move validation failed
+                    int maxMoveable = solitaireRules.CalculateMaxSequenceMoveSize();
+                    if (columnCards.Count == 0)
+                    {
+                        maxMoveable = maxMoveable / 2; // Moving to empty column reduces max by half
+                    }
+                    return $"Cannot move {cardsToMove.Count} cards - maximum {maxMoveable} cards can be moved with current free space";
                 }
             }
             
@@ -1299,15 +1314,23 @@ namespace CardGames
                         tableauControls[col].Contains(targetControl))
                     {
                         // This is an empty tableau column - validate the move
+                        List<Card> cardsToMove = GetCardSequenceToMove(dragSourceControl, card);
                         bool canPlace = solitaireRules.CanPlaceCardOnTableau(card, col);
-                        DebugLog($" -> Empty tableau column[{col}] detected via fallback, canPlace={canPlace}");
-                        if (canPlace)
+                        bool canMoveSequence = solitaireRules.CanMoveCardSequence(cardsToMove.Count, col);
+                        DebugLog($" -> Empty tableau column[{col}] detected via fallback, canPlace={canPlace}, canMoveSequence={canMoveSequence}, sequenceSize={cardsToMove.Count}");
+                        
+                        if (canPlace && canMoveSequence)
                         {
                             return "Valid";
                         }
-                        else
+                        else if (!canPlace)
                         {
                             return "Only Kings can be placed on empty tableau spaces";
+                        }
+                        else if (!canMoveSequence)
+                        {
+                            int maxMoveable = solitaireRules.CalculateMaxSequenceMoveSize() / 2; // Moving to empty column reduces max by half
+                            return $"Cannot move {cardsToMove.Count} cards - maximum {maxMoveable} cards can be moved to empty column with current free space";
                         }
                     }
                 }
