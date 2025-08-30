@@ -835,6 +835,10 @@ namespace CardGames
                 RefreshUIAfterMove(sourceControl);
                 UpdateFreeCells();
                 UpdateFreecellStatus();
+                
+                // Update status with specific move details
+                string sourceDescription = GetMoveSourceDescription(sourceControl);
+                StatusLabel.Content = $"Moved {card.Number} of {card.Suite}s from {sourceDescription} to Free Cell {freeCellIndex + 1}";
                 return;
             }
 
@@ -1651,6 +1655,38 @@ namespace CardGames
                 }
             }
 
+            // Check Free Cells (for Freecell)
+            if (currentGameType == "Freecell")
+            {
+                for (int i = 0; i < freeCellControls.Count; i++)
+                {
+                    CardUserControl freeCellControl = freeCellControls[i];
+                    Card freeCellData = solitaireRules.GetCardFromFreeCell(i);
+                    
+                    if (freeCellData == null)
+                    {
+                        if (freeCellControl.Card != null)
+                        {
+                            DebugLog($"MISMATCH: FreeCell[{i}] UI shows {DescribeCard(freeCellControl.Card)}, data shows empty");
+                            isValid = false;
+                        }
+                    }
+                    else
+                    {
+                        if (freeCellControl.Card == null)
+                        {
+                            DebugLog($"MISMATCH: FreeCell[{i}] UI shows empty, data shows {DescribeCard(freeCellData)}");
+                            isValid = false;
+                        }
+                        else if (!CardsEqual(freeCellControl.Card, freeCellData))
+                        {
+                            DebugLog($"MISMATCH: FreeCell[{i}] UI shows {DescribeCard(freeCellControl.Card)}, data shows {DescribeCard(freeCellData)}");
+                            isValid = false;
+                        }
+                    }
+                }
+            }
+
             // Check Tableau Columns
             for (int col = 0; col < tableauControls.Count; col++)
             {
@@ -1787,6 +1823,58 @@ namespace CardGames
                 ToggleDragDropDebugMode();
                 e.Handled = true;
             }
+        }
+
+        /// <summary>
+        /// Refresh UI elements after a move is completed
+        /// </summary>
+        private void RefreshUIAfterMove(CardUserControl sourceControl)
+        {
+            // For Freecell, update status indicators
+            if (currentGameType == "Freecell")
+            {
+                UpdateFreecellStatus();
+            }
+            
+            // Update general game display elements if needed
+            // This can be expanded to refresh specific UI elements after moves
+        }
+
+        /// <summary>
+        /// Get a friendly description of where a move originated from
+        /// </summary>
+        private string GetMoveSourceDescription(CardUserControl sourceControl)
+        {
+            if (freeCellControls.Contains(sourceControl))
+            {
+                int freeCellIndex = freeCellControls.IndexOf(sourceControl);
+                return $"Free Cell {freeCellIndex + 1}";
+            }
+            
+            if (foundationControls.Contains(sourceControl))
+            {
+                int foundationIndex = foundationControls.IndexOf(sourceControl);
+                string[] suitNames = { "Hearts", "Clubs", "Diamonds", "Spades" };
+                return $"{suitNames[foundationIndex]} Foundation";
+            }
+            
+            int tableauIndex = GetTableauColumnIndex(sourceControl);
+            if (tableauIndex >= 0)
+            {
+                return $"Column {tableauIndex + 1}";
+            }
+            
+            if (ReferenceEquals(sourceControl, WastePile))
+            {
+                return "Waste Pile";
+            }
+            
+            if (ReferenceEquals(sourceControl, StockPile))
+            {
+                return "Stock Pile";
+            }
+            
+            return "Unknown";
         }
     }
 }
