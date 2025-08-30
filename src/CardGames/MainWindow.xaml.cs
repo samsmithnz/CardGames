@@ -32,10 +32,14 @@ namespace CardGames
         private List<CardUserControl> foundationControls;
         private List<List<CardUserControl>> tableauControls;
         private List<Canvas> tableauCanvases; // Canvas containers for each tableau column
+        private List<CardUserControl> freeCellControls; // Free cell controls for Freecell
         
         // Track which positions in each tableau column should be face-up
         // This preserves face-up state during card moves and stacking
         private List<List<bool>> tableauFaceUpStates;
+
+        // Current game type
+        private string currentGameType = "Klondike Solitaire";
 
         // Debug toggle
         private bool debugEnabled = true;
@@ -101,6 +105,15 @@ namespace CardGames
                 foundation.IsDebugMode = enabled;
             }
             
+            // Free cells
+            if (freeCellControls != null)
+            {
+                foreach (CardUserControl freeCell in freeCellControls)
+                {
+                    freeCell.IsDebugMode = enabled;
+                }
+            }
+            
             // Tableau columns
             foreach (List<CardUserControl> column in tableauControls)
             {
@@ -145,6 +158,11 @@ namespace CardGames
             {
                 return $"Foundation[{fIndex}]";
             }
+            int fcIndex = freeCellControls != null ? freeCellControls.IndexOf(control) : -1;
+            if (fcIndex >= 0)
+            {
+                return $"FreeCell[{fcIndex}]";
+            }
             int tCol = GetTableauColumnIndex(control);
             if (tCol >= 0)
             {
@@ -160,10 +178,14 @@ namespace CardGames
         private void InitializeGame()
         {
             deck = new Deck();
-            solitaireRules = new SolitaireRules();
+            solitaireRules = new SolitaireRules(currentGameType);
             
             // Initialize control collections
             foundationControls = new List<CardUserControl> { Foundation1, Foundation2, Foundation3, Foundation4 };
+            
+            // Initialize free cell controls
+            freeCellControls = new List<CardUserControl> { FreeCell1, FreeCell2, FreeCell3, FreeCell4 };
+            
             tableauControls = new List<List<CardUserControl>>
             {
                 new List<CardUserControl> { Tableau1_1 },
@@ -174,6 +196,12 @@ namespace CardGames
                 new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
                 new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 }
             };
+
+            // Add 8th column for Freecell if needed
+            if (currentGameType == "Freecell")
+            {
+                tableauControls.Add(new List<CardUserControl> { Tableau8_1, Tableau8_2, Tableau8_3, Tableau8_4, Tableau8_5, Tableau8_6, Tableau8_7 });
+            }
 
             // Map the Canvas for each tableau column for dynamic UI growth
             tableauCanvases = new List<Canvas>
@@ -187,9 +215,16 @@ namespace CardGames
                 TableauColumn7
             };
             
+            // Add 8th canvas for Freecell if needed
+            if (currentGameType == "Freecell")
+            {
+                tableauCanvases.Add(TableauColumn8);
+            }
+            
             // Initialize face-up state tracking for tableau columns
             tableauFaceUpStates = new List<List<bool>>();
-            for (int i = 0; i < 7; i++)
+            int numColumns = currentGameType == "Freecell" ? 8 : 7;
+            for (int i = 0; i < numColumns; i++)
             {
                 tableauFaceUpStates.Add(new List<bool>());
                 // Initialize with enough slots for maximum possible cards initially (based on UI controls)
@@ -200,9 +235,45 @@ namespace CardGames
             }
             
             SetupCardEvents();
+            SetupUIVisibility();
             
             // Automatically start a new game when the program starts
             StartNewGame();
+        }
+
+        /// <summary>
+        /// Setup UI visibility based on current game type
+        /// </summary>
+        private void SetupUIVisibility()
+        {
+            bool isFreecell = currentGameType == "Freecell";
+            
+            // Show/hide stock and waste piles
+            StockBorder.Visibility = isFreecell ? Visibility.Collapsed : Visibility.Visible;
+            StockLabel.Visibility = isFreecell ? Visibility.Collapsed : Visibility.Visible;
+            WasteBorder.Visibility = isFreecell ? Visibility.Collapsed : Visibility.Visible;
+            WasteLabel.Visibility = isFreecell ? Visibility.Collapsed : Visibility.Visible;
+            
+            // Show/hide free cells
+            FreeCellBorder1.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            FreeCellLabel1.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            FreeCellBorder2.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            FreeCellLabel2.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            FreeCellBorder3.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            FreeCellLabel3.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            FreeCellBorder4.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            FreeCellLabel4.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Show/hide 8th tableau column
+            TableauColumn8Border.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Show/hide status elements
+            FreeCellsStatus.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            EmptyColumnsStatus.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
+            
+            // Update button highlights
+            KlondikeButton.Background = isFreecell ? null : new SolidColorBrush(Colors.LightBlue);
+            FreecellButton.Background = isFreecell ? new SolidColorBrush(Colors.LightBlue) : null;
         }
 
         /// <summary>
@@ -240,6 +311,18 @@ namespace CardGames
                 foundation.DebugLog += OnCardDebugLog;
                 foundation.VisibleHeight = CardVisualConstants.CardHeight; // Full height for foundation piles
                 foundation.StackPosition = 0; // Non-stacked cards use position 0
+            }
+
+            // Free cells (for Freecell)
+            foreach (CardUserControl freeCell in freeCellControls)
+            {
+                freeCell.CardDragStarted += OnCardDragStarted;
+                freeCell.CardDropped += OnCardDropped;
+                freeCell.ValidateDrop += OnValidateDrop;
+                freeCell.CardClicked += OnCardClicked;
+                freeCell.DebugLog += OnCardDebugLog;
+                freeCell.VisibleHeight = CardVisualConstants.CardHeight; // Full height for free cells
+                freeCell.StackPosition = 0; // Non-stacked cards use position 0
             }
 
             // Tableau columns
@@ -322,6 +405,32 @@ namespace CardGames
                 {
                     columnFaceUpStates[columnCards.Count - 1] = true;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Switch to Klondike Solitaire game mode
+        /// </summary>
+        private void KlondikeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentGameType != "Klondike Solitaire")
+            {
+                currentGameType = "Klondike Solitaire";
+                InitializeGame();
+                StatusLabel.Content = "Playing Klondike Solitaire";
+            }
+        }
+
+        /// <summary>
+        /// Switch to Freecell game mode
+        /// </summary>
+        private void FreecellButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (currentGameType != "Freecell")
+            {
+                currentGameType = "Freecell";
+                InitializeGame();
+                StatusLabel.Content = "Playing Freecell";
             }
         }
 
@@ -418,6 +527,13 @@ namespace CardGames
                 foundation.IsFaceUp = false;
             }
             
+            // Clear free cells
+            foreach (CardUserControl freeCell in freeCellControls)
+            {
+                freeCell.Card = null;
+                freeCell.IsFaceUp = false;
+            }
+            
             // Clear tableau columns
             foreach (List<CardUserControl> column in tableauControls)
             {
@@ -441,6 +557,9 @@ namespace CardGames
             // Display waste pile 
             UpdateWastePile();
             
+            // Display free cells
+            UpdateFreeCells();
+            
             // Display foundation piles
             for (int i = 0; i < foundationControls.Count; i++)
             {
@@ -462,6 +581,70 @@ namespace CardGames
             {
                 RefreshTableauColumn(col);
             }
+            
+            // Update status indicators for Freecell
+            if (currentGameType == "Freecell")
+            {
+                UpdateFreecellStatus();
+            }
+        }
+
+        /// <summary>
+        /// Update free cell display based on current game state
+        /// </summary>
+        private void UpdateFreeCells()
+        {
+            if (currentGameType != "Freecell")
+            {
+                return;
+            }
+
+            for (int i = 0; i < freeCellControls.Count; i++)
+            {
+                Card freeCellCard = solitaireRules.GetCardFromFreeCell(i);
+                if (freeCellCard != null)
+                {
+                    freeCellControls[i].SetupCard(freeCellCard);
+                    freeCellControls[i].IsFaceUp = true;
+                }
+                else
+                {
+                    freeCellControls[i].Card = null;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update Freecell-specific status indicators
+        /// </summary>
+        private void UpdateFreecellStatus()
+        {
+            if (currentGameType != "Freecell")
+            {
+                return;
+            }
+
+            // Count empty free cells
+            int emptyFreeCells = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (solitaireRules.GetCardFromFreeCell(i) == null)
+                {
+                    emptyFreeCells++;
+                }
+            }
+            FreeCellsLabel.Content = $"Free Cells: {emptyFreeCells}/4";
+
+            // Count empty tableau columns
+            int emptyColumns = 0;
+            for (int i = 0; i < solitaireRules.TableauColumns.Count; i++)
+            {
+                if (solitaireRules.TableauColumns[i].Count == 0)
+                {
+                    emptyColumns++;
+                }
+            }
+            EmptyColumnsLabel.Content = $"Empty Columns: {emptyColumns}";
         }
         
         /// <summary>
@@ -629,6 +812,31 @@ namespace CardGames
             // Get the sequence of cards that should move together
             List<Card> cardsToMove = GetCardSequenceToMove(sourceControl, card);
             DebugLog($"ExecuteMove: Moving {cardsToMove.Count} card(s) in sequence");
+
+            // Check if moving to free cell
+            if (freeCellControls.Contains(targetControl))
+            {
+                int freeCellIndex = freeCellControls.IndexOf(targetControl);
+                
+                // Free cell moves can only be single cards
+                if (cardsToMove.Count > 1)
+                {
+                    DebugLog("ExecuteMove: Cannot move multiple cards to free cell - using single card only");
+                    cardsToMove = new List<Card> { card };
+                }
+                
+                // Remove card from source
+                RemoveCardFromSource(sourceControl, card);
+                
+                // Place card in free cell
+                solitaireRules.PlaceCardInFreeCell(card, freeCellIndex);
+                
+                // Update UI
+                RefreshUIAfterMove(sourceControl);
+                UpdateFreeCells();
+                UpdateFreecellStatus();
+                return;
+            }
 
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
@@ -811,6 +1019,20 @@ namespace CardGames
         /// <param name="card">The card being moved</param>
         private void RemoveCardFromSource(CardUserControl sourceControl, Card card)
         {
+            // Check if removing from free cell
+            if (freeCellControls.Contains(sourceControl))
+            {
+                int freeCellIndex = freeCellControls.IndexOf(sourceControl);
+                Card freeCellCard = solitaireRules.GetCardFromFreeCell(freeCellIndex);
+                if (freeCellCard == card)
+                {
+                    solitaireRules.RemoveCardFromFreeCell(freeCellIndex);
+                    UpdateFreeCells();
+                    UpdateFreecellStatus();
+                }
+                return;
+            }
+
             // Check if removing from tableau
             int sourceColumnIndex = GetTableauColumnIndex(sourceControl);
             if (sourceColumnIndex >= 0)
@@ -991,6 +1213,22 @@ namespace CardGames
 
             DebugLog($"ValidateMoveDetailed: source={DescribeControl(dragSourceControl)}, target={DescribeControl(targetControl)}, card={DescribeCard(card)}");
             DebugLog($"  targetControl.Card = {DescribeCard(targetControl.Card)}");
+            
+            // Check if moving to free cell
+            if (freeCellControls.Contains(targetControl))
+            {
+                int freeCellIndex = freeCellControls.IndexOf(targetControl);
+                bool canPlaceFreeCell = solitaireRules.CanPlaceCardInFreeCell(freeCellIndex);
+                DebugLog($" -> FreeCell[{freeCellIndex}] canPlace={canPlaceFreeCell}");
+                if (canPlaceFreeCell)
+                {
+                    return "Valid";
+                }
+                else
+                {
+                    return "Free cell is already occupied";
+                }
+            }
             
             // Check if moving to foundation pile
             if (foundationControls.Contains(targetControl))
