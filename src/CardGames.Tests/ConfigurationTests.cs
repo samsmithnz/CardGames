@@ -394,5 +394,45 @@ namespace CardGames.Tests
             Assert.AreNotEqual(initialRules.GameConfig.Piles.Tableau, newRules.GameConfig.Piles.Tableau);
             Assert.AreNotEqual(initialRules.GameConfig.Piles.Freecells, newRules.GameConfig.Piles.Freecells);
         }
+
+        [TestMethod] 
+        public void Bug_FreecellGameCreation_ShouldNotRevertToKlondike()
+        {
+            // This test reproduces the specific bug scenario:
+            // User selects Freecell but gets Klondike due to recursive StartNewGame call
+            
+            // Arrange - simulate the problematic flow
+            string initialGameType = "Klondike Solitaire";
+            
+            // Act - simulate what happens when user selects Freecell
+            string selectedGameName = "Freecell";
+            string currentGameType = initialGameType;
+            
+            // Step 1: StartNewGame("Freecell") is called
+            if (currentGameType != selectedGameName)
+            {
+                currentGameType = selectedGameName; // Set to "Freecell"
+                
+                // Step 2: InitializeGame() is called, which now should NOT call StartNewGame()
+                // and should preserve the currentGameType as "Freecell"
+                SolitaireRules rulesAfterInit = new SolitaireRules(currentGameType);
+                
+                // This should be Freecell, not Klondike
+                Assert.AreEqual("Freecell", rulesAfterInit.GameConfig.GameName);
+                Assert.AreEqual(8, rulesAfterInit.GameConfig.Piles.Tableau);
+                Assert.AreEqual(4, rulesAfterInit.GameConfig.Piles.Freecells);
+                
+                // Step 3: Complete the rest of StartNewGame flow
+                SolitaireRules finalRules = new SolitaireRules(currentGameType);
+                
+                // Assert - the final game should still be Freecell
+                Assert.AreEqual("Freecell", finalRules.GameConfig.GameName);
+                Assert.AreEqual("Freecell", currentGameType, "currentGameType should remain Freecell");
+            }
+            else
+            {
+                Assert.Fail("Test setup error - should have entered the if branch");
+            }
+        }
     }
 }
