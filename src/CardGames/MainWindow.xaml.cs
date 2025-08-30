@@ -271,9 +271,6 @@ namespace CardGames
             FreeCellsStatus.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
             EmptyColumnsStatus.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
             
-            // Update button highlights
-            KlondikeButton.Background = isFreecell ? null : new SolidColorBrush(Colors.LightBlue);
-            FreecellButton.Background = isFreecell ? new SolidColorBrush(Colors.LightBlue) : null;
         }
 
         /// <summary>
@@ -398,51 +395,22 @@ namespace CardGames
         /// </summary>
         private void InitializeTableauFaceUpStates()
         {
+            // Always rebuild the face-up state list to match the current number of tableau columns
+            tableauFaceUpStates.Clear();
             for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
             {
                 List<Card> columnCards = solitaireRules.TableauColumns[col];
-                List<bool> columnFaceUpStates = tableauFaceUpStates[col];
-                
-                // Ensure the face-up states list can represent all cards in the column
-                EnsureFaceUpStateCapacity(col, columnCards.Count);
-
-                // Reset all states to false first
-                for (int row = 0; row < columnFaceUpStates.Count; row++)
+                List<bool> columnFaceUpStates = new List<bool>();
+                // Set all to false, then set only the last card to face-up if the column has cards
+                for (int row = 0; row < columnCards.Count; row++)
                 {
-                    columnFaceUpStates[row] = false;
+                    columnFaceUpStates.Add(false);
                 }
-                
-                // Set only the last card to face-up if the column has cards
                 if (columnCards.Count > 0)
                 {
                     columnFaceUpStates[columnCards.Count - 1] = true;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Switch to Klondike Solitaire game mode
-        /// </summary>
-        private void KlondikeButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (currentGameType != "Klondike Solitaire")
-            {
-                currentGameType = "Klondike Solitaire";
-                InitializeGame();
-                StatusLabel.Content = "Playing Klondike Solitaire";
-            }
-        }
-
-        /// <summary>
-        /// Switch to Freecell game mode
-        /// </summary>
-        private void FreecellButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (currentGameType != "Freecell")
-            {
-                currentGameType = "Freecell";
-                InitializeGame();
-                StatusLabel.Content = "Playing Freecell";
+                tableauFaceUpStates.Add(columnFaceUpStates);
             }
         }
 
