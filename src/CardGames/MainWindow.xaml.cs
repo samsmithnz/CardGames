@@ -51,6 +51,9 @@ namespace CardGames
         {
             InitializeComponent();
             InitializeGame();
+            
+            // Start initial game
+            StartNewGame(currentGameType);
         }
         
         /// <summary>
@@ -236,9 +239,6 @@ namespace CardGames
             
             SetupCardEvents();
             SetupUIVisibility();
-            
-            // Automatically start a new game when the program starts
-            StartNewGame();
         }
 
         /// <summary>

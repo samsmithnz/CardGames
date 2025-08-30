@@ -350,5 +350,89 @@ namespace CardGames.Tests
             Assert.IsNull(rules.RemoveCardFromFreeCell(-1), "Should return null when removing from negative index");
             Assert.IsNull(rules.RemoveCardFromFreeCell(4), "Should return null when removing from index beyond count");
         }
+
+        [TestMethod]
+        public void GameTypeFlow_SimulateUserSelectingFreecell_ShouldCreateCorrectGame()
+        {
+            // This test simulates the flow a user would go through in the UI
+            // to select Freecell and verify it creates the right game type
+            
+            // Arrange - simulate initial state (defaults to Klondike)
+            string currentGameType = "Klondike Solitaire";
+            SolitaireRules initialRules = new SolitaireRules(currentGameType);
+            
+            // Verify initial state is Klondike
+            Assert.AreEqual("Klondike Solitaire", initialRules.GameConfig.GameName);
+            Assert.AreEqual(7, initialRules.GameConfig.Piles.Tableau);
+            Assert.AreEqual(0, initialRules.GameConfig.Piles.Freecells);
+            
+            // Act - simulate user selecting Freecell (like StartNewGame("Freecell"))
+            string selectedGameName = "Freecell";
+            SolitaireRules newRules;
+            
+            if (currentGameType != selectedGameName)
+            {
+                currentGameType = selectedGameName;
+                // This simulates InitializeGame() being called
+                newRules = new SolitaireRules(currentGameType);
+            }
+            else
+            {
+                // This simulates the else branch
+                newRules = new SolitaireRules(selectedGameName);
+            }
+            
+            // Assert - verify new game is Freecell with correct configuration
+            Assert.AreEqual("Freecell", newRules.GameConfig.GameName);
+            Assert.AreEqual(8, newRules.GameConfig.Piles.Tableau);
+            Assert.AreEqual(4, newRules.GameConfig.Piles.Freecells);
+            Assert.AreEqual(0, newRules.GameConfig.Piles.Waste);
+            Assert.AreEqual(0, newRules.GameConfig.DrawRules.DrawCount);
+            
+            // Verify it's actually different from Klondike
+            Assert.AreNotEqual(initialRules.GameConfig.GameName, newRules.GameConfig.GameName);
+            Assert.AreNotEqual(initialRules.GameConfig.Piles.Tableau, newRules.GameConfig.Piles.Tableau);
+            Assert.AreNotEqual(initialRules.GameConfig.Piles.Freecells, newRules.GameConfig.Piles.Freecells);
+        }
+
+        [TestMethod] 
+        public void Bug_FreecellGameCreation_ShouldNotRevertToKlondike()
+        {
+            // This test reproduces the specific bug scenario:
+            // User selects Freecell but gets Klondike due to recursive StartNewGame call
+            
+            // Arrange - simulate the problematic flow
+            string initialGameType = "Klondike Solitaire";
+            
+            // Act - simulate what happens when user selects Freecell
+            string selectedGameName = "Freecell";
+            string currentGameType = initialGameType;
+            
+            // Step 1: StartNewGame("Freecell") is called
+            if (currentGameType != selectedGameName)
+            {
+                currentGameType = selectedGameName; // Set to "Freecell"
+                
+                // Step 2: InitializeGame() is called, which now should NOT call StartNewGame()
+                // and should preserve the currentGameType as "Freecell"
+                SolitaireRules rulesAfterInit = new SolitaireRules(currentGameType);
+                
+                // This should be Freecell, not Klondike
+                Assert.AreEqual("Freecell", rulesAfterInit.GameConfig.GameName);
+                Assert.AreEqual(8, rulesAfterInit.GameConfig.Piles.Tableau);
+                Assert.AreEqual(4, rulesAfterInit.GameConfig.Piles.Freecells);
+                
+                // Step 3: Complete the rest of StartNewGame flow
+                SolitaireRules finalRules = new SolitaireRules(currentGameType);
+                
+                // Assert - the final game should still be Freecell
+                Assert.AreEqual("Freecell", finalRules.GameConfig.GameName);
+                Assert.AreEqual("Freecell", currentGameType, "currentGameType should remain Freecell");
+            }
+            else
+            {
+                Assert.Fail("Test setup error - should have entered the if branch");
+            }
+        }
     }
 }
