@@ -271,9 +271,6 @@ namespace CardGames
             FreeCellsStatus.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
             EmptyColumnsStatus.Visibility = isFreecell ? Visibility.Visible : Visibility.Collapsed;
             
-            // Update button highlights
-            KlondikeButton.Background = isFreecell ? null : new SolidColorBrush(Colors.LightBlue);
-            FreecellButton.Background = isFreecell ? new SolidColorBrush(Colors.LightBlue) : null;
         }
 
         /// <summary>
