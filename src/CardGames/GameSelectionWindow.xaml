@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Select Game Type" Height="336" Width="400"
+        Title="Select Game Type" Height="362" Width="400"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
         SizeToContent="Manual">
@@ -12,7 +12,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="150"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
@@ -27,7 +27,7 @@
                          IsChecked="True" Margin="0,5" FontSize="14"/>
             <TextBlock Text="Traditional 7-column solitaire with stock and waste piles" 
                        Margin="20,0,0,10" FontSize="11" Foreground="Gray"/>
-            
+
             <RadioButton x:Name="FreecellRadio" Content="Freecell" 
                          Margin="0,5" FontSize="14"/>
             <TextBlock Text="8-column solitaire with 4 free cells for temporary storage" 
@@ -35,8 +35,8 @@
         </StackPanel>
 
         <!-- Note about UI limitations -->
-        <Border Grid.Row="2" Background="LightYellow" BorderBrush="Orange" 
-                BorderThickness="1" Padding="10" Margin="0,0,0,20">
+        <Border Grid.Row="1" Background="LightYellow" BorderBrush="Orange" 
+                BorderThickness="1" Padding="10" Margin="0,124,0,20" Grid.RowSpan="2">
             <TextBlock TextWrapping="Wrap" FontSize="11">
                 <Run FontWeight="Bold">Note:</Run> The current UI is optimized for Klondike Solitaire. 
                 Freecell will work with the core game logic but may not display all cards properly 

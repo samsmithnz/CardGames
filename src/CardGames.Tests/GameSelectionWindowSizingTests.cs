@@ -25,14 +25,14 @@ namespace CardGames.Tests
             // Act - Parse XAML to verify Height attribute
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xamlContent);
-            
-            // Assert - Verify the Window element has Height="336"
+
+            // Assert - Verify the Window element has Height="362"
             XmlNode windowNode = doc.DocumentElement;
             Assert.IsNotNull(windowNode, "Should find Window element");
             
             XmlAttribute heightAttribute = windowNode.Attributes["Height"];
             Assert.IsNotNull(heightAttribute, "Should have Height attribute");
-            Assert.AreEqual("336", heightAttribute.Value, "Height should be exactly 336");
+            Assert.AreEqual("362", heightAttribute.Value, "Height should be exactly 362");
         }
         
         /// <summary>
