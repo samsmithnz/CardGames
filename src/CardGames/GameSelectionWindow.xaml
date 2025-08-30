@@ -6,12 +6,13 @@
         mc:Ignorable="d"
         Title="Select Game Type" Height="336" Width="400"
         WindowStartupLocation="CenterOwner"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        SizeToContent="Manual">
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="150"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
