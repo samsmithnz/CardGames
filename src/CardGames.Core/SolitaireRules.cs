@@ -33,6 +33,11 @@ namespace CardGames.Core
         public List<Card> WastePile { get; private set; }
 
         /// <summary>
+        /// The free cells used in games like Freecell for temporary card storage
+        /// </summary>
+        public List<Card> FreeCells { get; private set; }
+
+        /// <summary>
         /// Configuration defining the rules and setup for this game variant
         /// </summary>
         public GameDefinition GameConfig { get; private set; }
@@ -83,6 +88,13 @@ namespace CardGames.Core
 
             StockPile = new List<Card>();
             WastePile = new List<Card>();
+
+            // Initialize free cells for games like Freecell
+            FreeCells = new List<Card>();
+            for (int i = 0; i < GameConfig.Piles.Freecells; i++)
+            {
+                FreeCells.Add(null); // null represents an empty free cell
+            }
         }
 
         /// <summary>
@@ -350,6 +362,87 @@ namespace CardGames.Core
             bool card1IsRed = card1.Suite == Card.CardSuite.Heart || card1.Suite == Card.CardSuite.Diamond;
             bool card2IsRed = card2.Suite == Card.CardSuite.Heart || card2.Suite == Card.CardSuite.Diamond;
             return card1IsRed != card2IsRed;
+        }
+
+        /// <summary>
+        /// Checks if a card can be placed in a specific free cell
+        /// </summary>
+        /// <param name="freeCellIndex">Index of the free cell (0-3 for Freecell)</param>
+        /// <returns>True if the free cell is empty and available</returns>
+        public bool CanPlaceCardInFreeCell(int freeCellIndex)
+        {
+            if (freeCellIndex < 0 || freeCellIndex >= FreeCells.Count)
+            {
+                return false;
+            }
+            
+            return FreeCells[freeCellIndex] == null;
+        }
+
+        /// <summary>
+        /// Places a card in a specific free cell
+        /// </summary>
+        /// <param name="card">Card to place</param>
+        /// <param name="freeCellIndex">Index of the free cell</param>
+        /// <returns>True if successful, false if free cell is occupied or invalid</returns>
+        public bool PlaceCardInFreeCell(Card card, int freeCellIndex)
+        {
+            if (!CanPlaceCardInFreeCell(freeCellIndex))
+            {
+                return false;
+            }
+            
+            FreeCells[freeCellIndex] = card;
+            return true;
+        }
+
+        /// <summary>
+        /// Gets a card from a specific free cell
+        /// </summary>
+        /// <param name="freeCellIndex">Index of the free cell</param>
+        /// <returns>The card in the free cell, or null if empty</returns>
+        public Card GetCardFromFreeCell(int freeCellIndex)
+        {
+            if (freeCellIndex < 0 || freeCellIndex >= FreeCells.Count)
+            {
+                return null;
+            }
+            
+            return FreeCells[freeCellIndex];
+        }
+
+        /// <summary>
+        /// Removes a card from a specific free cell
+        /// </summary>
+        /// <param name="freeCellIndex">Index of the free cell</param>
+        /// <returns>The card that was removed, or null if free cell was empty</returns>
+        public Card RemoveCardFromFreeCell(int freeCellIndex)
+        {
+            if (freeCellIndex < 0 || freeCellIndex >= FreeCells.Count)
+            {
+                return null;
+            }
+            
+            Card card = FreeCells[freeCellIndex];
+            FreeCells[freeCellIndex] = null;
+            return card;
+        }
+
+        /// <summary>
+        /// Gets the number of empty free cells available
+        /// </summary>
+        /// <returns>Count of empty free cells</returns>
+        public int GetEmptyFreeCellCount()
+        {
+            int count = 0;
+            for (int i = 0; i < FreeCells.Count; i++)
+            {
+                if (FreeCells[i] == null)
+                {
+                    count++;
+                }
+            }
+            return count;
         }
     }
 }
