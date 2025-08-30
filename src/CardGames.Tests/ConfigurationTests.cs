@@ -208,14 +208,39 @@ namespace CardGames.Tests
         }
 
         [TestMethod]
-        public void SolitaireRules_KlondikeConfiguration_ShouldNotHaveFreeCells()
+        public void SolitaireRules_GameTypeSwitching_ShouldMaintainCorrectConfiguration()
         {
-            // Arrange & Act
+            // Test switching from Klondike to Freecell
             SolitaireRules rules = new SolitaireRules("Klondike Solitaire");
-
-            // Assert
-            Assert.IsNotNull(rules.FreeCells, "Free cells should exist as a list");
+            
+            // Verify initial Klondike state
+            Assert.AreEqual(7, rules.TableauColumns.Count, "Klondike should have 7 tableau columns");
+            Assert.AreEqual(4, rules.FoundationPiles.Count, "Klondike should have 4 foundation piles");
             Assert.AreEqual(0, rules.FreeCells.Count, "Klondike should have 0 free cells");
+            Assert.AreEqual(1, rules.GameConfig.Piles.Waste, "Klondike should have 1 waste pile");
+            
+            // Switch to Freecell
+            rules = new SolitaireRules("Freecell");
+            
+            // Verify Freecell state
+            Assert.AreEqual(8, rules.TableauColumns.Count, "Freecell should have 8 tableau columns");
+            Assert.AreEqual(4, rules.FoundationPiles.Count, "Freecell should have 4 foundation piles");
+            Assert.AreEqual(4, rules.FreeCells.Count, "Freecell should have 4 free cells");
+            Assert.AreEqual(0, rules.GameConfig.Piles.Waste, "Freecell should have 0 waste piles");
+            
+            // Verify all free cells are initially empty
+            for (int i = 0; i < rules.FreeCells.Count; i++)
+            {
+                Assert.IsNull(rules.FreeCells[i], $"Free cell {i} should be initially empty");
+            }
+            
+            // Switch back to Klondike
+            rules = new SolitaireRules("Klondike Solitaire");
+            
+            // Verify back to Klondike state
+            Assert.AreEqual(7, rules.TableauColumns.Count, "Klondike should have 7 tableau columns after switch back");
+            Assert.AreEqual(0, rules.FreeCells.Count, "Klondike should have 0 free cells after switch back");
+            Assert.AreEqual(1, rules.GameConfig.Piles.Waste, "Klondike should have 1 waste pile after switch back");
         }
 
         [TestMethod]

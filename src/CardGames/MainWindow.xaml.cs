@@ -373,8 +373,19 @@ namespace CardGames
         /// <param name="gameName">Name of the game variant to play</param>
         private void StartNewGame(string gameName)
         {
-            // Reinitialize game rules for the selected game type
-            solitaireRules = new SolitaireRules(gameName);
+            // Update current game type if it has changed
+            if (currentGameType != gameName)
+            {
+                currentGameType = gameName;
+                
+                // Reinitialize the game completely when switching game types
+                InitializeGame();
+            }
+            else
+            {
+                // Reinitialize game rules for the same game type
+                solitaireRules = new SolitaireRules(gameName);
+            }
             
             // Clear all existing cards from UI
             ClearAllCards();
