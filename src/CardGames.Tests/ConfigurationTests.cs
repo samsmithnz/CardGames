@@ -208,35 +208,69 @@ namespace CardGames.Tests
         }
 
         [TestMethod]
-        public void SolitaireRules_KlondikeConfiguration_ShouldNotHaveFreeCells()
+        public void SolitaireRules_GameTypeSwitching_ShouldMaintainCorrectConfiguration()
         {
-            // Arrange & Act
+            // Test switching from Klondike to Freecell
             SolitaireRules rules = new SolitaireRules("Klondike Solitaire");
-
-            // Assert
-            Assert.IsNotNull(rules.FreeCells, "Free cells should exist as a list");
+            
+            // Verify initial Klondike state
+            Assert.AreEqual(7, rules.TableauColumns.Count, "Klondike should have 7 tableau columns");
+            Assert.AreEqual(4, rules.FoundationPiles.Count, "Klondike should have 4 foundation piles");
             Assert.AreEqual(0, rules.FreeCells.Count, "Klondike should have 0 free cells");
-        }
-
-        [TestMethod]
-        public void SolitaireRules_FreecellConfiguration_ShouldCreateCorrectPileStructure()
-        {
-            // Arrange & Act
-            SolitaireRules rules = new SolitaireRules("Freecell");
-
-            // Assert
+            Assert.AreEqual(1, rules.GameConfig.Piles.Waste, "Klondike should have 1 waste pile");
+            
+            // Switch to Freecell
+            rules = new SolitaireRules("Freecell");
+            
+            // Verify Freecell state
             Assert.AreEqual(8, rules.TableauColumns.Count, "Freecell should have 8 tableau columns");
             Assert.AreEqual(4, rules.FoundationPiles.Count, "Freecell should have 4 foundation piles");
-            Assert.IsNotNull(rules.StockPile, "Stock pile should exist");
-            Assert.IsNotNull(rules.WastePile, "Waste pile should exist");
-            Assert.IsNotNull(rules.FreeCells, "Free cells should exist");
             Assert.AreEqual(4, rules.FreeCells.Count, "Freecell should have 4 free cells");
-
-            // Verify all free cells are initially empty (null)
+            Assert.AreEqual(0, rules.GameConfig.Piles.Waste, "Freecell should have 0 waste piles");
+            
+            // Verify all free cells are initially empty
             for (int i = 0; i < rules.FreeCells.Count; i++)
             {
                 Assert.IsNull(rules.FreeCells[i], $"Free cell {i} should be initially empty");
             }
+            
+            // Switch back to Klondike
+            rules = new SolitaireRules("Klondike Solitaire");
+            
+            // Verify back to Klondike state
+            Assert.AreEqual(7, rules.TableauColumns.Count, "Klondike should have 7 tableau columns after switch back");
+            Assert.AreEqual(0, rules.FreeCells.Count, "Klondike should have 0 free cells after switch back");
+            Assert.AreEqual(1, rules.GameConfig.Piles.Waste, "Klondike should have 1 waste pile after switch back");
+        }
+
+        [TestMethod]
+        public void SolitaireRules_FreecellUIConfiguration_ShouldHaveCorrectSettings()
+        {
+            // Arrange & Act - Create Freecell rules
+            SolitaireRules freecellRules = new SolitaireRules("Freecell");
+
+            // Assert - Verify Freecell-specific UI requirements
+            Assert.AreEqual(4, freecellRules.FreeCells.Count, "Freecell should have 4 free cells for UI");
+            Assert.AreEqual(8, freecellRules.TableauColumns.Count, "Freecell should have 8 tableau columns for UI");
+            Assert.AreEqual(0, freecellRules.GameConfig.Piles.Waste, "Freecell should have 0 waste piles (hidden in UI)");
+            Assert.AreEqual(4, freecellRules.GameConfig.Piles.Freecells, "Freecell config should specify 4 freecells");
+            
+            // Verify free cells are properly initialized as empty
+            for (int i = 0; i < freecellRules.FreeCells.Count; i++)
+            {
+                Assert.IsNull(freecellRules.FreeCells[i], $"Free cell {i} should start empty");
+                Assert.IsTrue(freecellRules.CanPlaceCardInFreeCell(i), $"Should be able to place card in empty free cell {i}");
+            }
+            
+            // Verify that free cell functionality works
+            Card testCard = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Spade };
+            Assert.IsTrue(freecellRules.PlaceCardInFreeCell(testCard, 0), "Should be able to place card in free cell");
+            Assert.IsFalse(freecellRules.CanPlaceCardInFreeCell(0), "Should not be able to place another card in occupied free cell");
+            
+            Card retrievedCard = freecellRules.GetCardFromFreeCell(0);
+            Assert.IsNotNull(retrievedCard, "Should retrieve the placed card");
+            Assert.AreEqual(Card.CardNumber.A, retrievedCard.Number, "Retrieved card should be ace");
+            Assert.AreEqual(Card.CardSuite.Spade, retrievedCard.Suite, "Retrieved card should be spades");
         }
 
         [TestMethod]
