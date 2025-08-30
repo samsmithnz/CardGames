@@ -206,8 +206,6 @@
         
         <!-- Control Buttons -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <Button x:Name="KlondikeButton" Content="Klondike Solitaire" Click="KlondikeButton_Click" Margin="5" Padding="10,5" Background="LightBlue"/>
-            <Button x:Name="FreecellButton" Content="Freecell" Click="FreecellButton_Click" Margin="5" Padding="10,5"/>
             <Button x:Name="NewGameButton" Content="New Game" Click="NewGameButton_Click" Margin="5" Padding="10,5"/>
             <Button x:Name="SaveGameButton" Content="Save Game" Click="SaveGameButton_Click" Margin="5" Padding="10,5"/>
             <Button x:Name="LoadGameButton" Content="Load Game" Click="LoadGameButton_Click" Margin="5" Padding="10,5"/>
