@@ -208,6 +208,17 @@ namespace CardGames.Tests
         }
 
         [TestMethod]
+        public void SolitaireRules_KlondikeConfiguration_ShouldNotHaveFreeCells()
+        {
+            // Arrange & Act
+            SolitaireRules rules = new SolitaireRules("Klondike Solitaire");
+
+            // Assert
+            Assert.IsNotNull(rules.FreeCells, "Free cells should exist as a list");
+            Assert.AreEqual(0, rules.FreeCells.Count, "Klondike should have 0 free cells");
+        }
+
+        [TestMethod]
         public void SolitaireRules_FreecellConfiguration_ShouldCreateCorrectPileStructure()
         {
             // Arrange & Act
@@ -218,6 +229,14 @@ namespace CardGames.Tests
             Assert.AreEqual(4, rules.FoundationPiles.Count, "Freecell should have 4 foundation piles");
             Assert.IsNotNull(rules.StockPile, "Stock pile should exist");
             Assert.IsNotNull(rules.WastePile, "Waste pile should exist");
+            Assert.IsNotNull(rules.FreeCells, "Free cells should exist");
+            Assert.AreEqual(4, rules.FreeCells.Count, "Freecell should have 4 free cells");
+
+            // Verify all free cells are initially empty (null)
+            for (int i = 0; i < rules.FreeCells.Count; i++)
+            {
+                Assert.IsNull(rules.FreeCells[i], $"Free cell {i} should be initially empty");
+            }
         }
 
         [TestMethod]
@@ -245,6 +264,57 @@ namespace CardGames.Tests
             
             // This test always passes, it's just for debugging
             Assert.IsTrue(true);
+        }
+
+        [TestMethod]
+        public void SolitaireRules_FreecellMethods_ShouldWorkCorrectly()
+        {
+            // Arrange
+            SolitaireRules rules = new SolitaireRules("Freecell");
+            Card aceOfSpades = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Spade };
+            Card kingOfHearts = new Card { Number = Card.CardNumber.K, Suite = Card.CardSuite.Heart };
+
+            // Act & Assert - Test placing cards in free cells
+            Assert.IsTrue(rules.CanPlaceCardInFreeCell(0), "Should be able to place card in empty free cell");
+            Assert.IsTrue(rules.PlaceCardInFreeCell(aceOfSpades, 0), "Should successfully place ace in free cell 0");
+            Assert.IsFalse(rules.CanPlaceCardInFreeCell(0), "Should not be able to place card in occupied free cell");
+            Assert.IsFalse(rules.PlaceCardInFreeCell(kingOfHearts, 0), "Should not be able to place second card in same free cell");
+
+            // Test getting cards from free cells
+            Card retrievedCard = rules.GetCardFromFreeCell(0);
+            Assert.IsNotNull(retrievedCard, "Should retrieve card from free cell");
+            Assert.AreEqual(Card.CardNumber.A, retrievedCard.Number, "Retrieved card should be the ace");
+            Assert.AreEqual(Card.CardSuite.Spade, retrievedCard.Suite, "Retrieved card should be spades");
+
+            // Test removing cards from free cells
+            Card removedCard = rules.RemoveCardFromFreeCell(0);
+            Assert.IsNotNull(removedCard, "Should remove card from free cell");
+            Assert.AreEqual(Card.CardNumber.A, removedCard.Number, "Removed card should be the ace");
+            Assert.IsNull(rules.GetCardFromFreeCell(0), "Free cell should be empty after removal");
+
+            // Test empty free cell count
+            Assert.AreEqual(4, rules.GetEmptyFreeCellCount(), "All free cells should be empty initially");
+            rules.PlaceCardInFreeCell(aceOfSpades, 0);
+            rules.PlaceCardInFreeCell(kingOfHearts, 1);
+            Assert.AreEqual(2, rules.GetEmptyFreeCellCount(), "Should have 2 empty free cells after placing 2 cards");
+        }
+
+        [TestMethod]
+        public void SolitaireRules_FreecellMethods_ShouldHandleInvalidIndices()
+        {
+            // Arrange
+            SolitaireRules rules = new SolitaireRules("Freecell");
+            Card aceOfSpades = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Spade };
+
+            // Act & Assert - Test invalid indices
+            Assert.IsFalse(rules.CanPlaceCardInFreeCell(-1), "Negative index should be invalid");
+            Assert.IsFalse(rules.CanPlaceCardInFreeCell(4), "Index beyond free cell count should be invalid");
+            Assert.IsFalse(rules.PlaceCardInFreeCell(aceOfSpades, -1), "Should not place card at negative index");
+            Assert.IsFalse(rules.PlaceCardInFreeCell(aceOfSpades, 4), "Should not place card beyond free cell count");
+            Assert.IsNull(rules.GetCardFromFreeCell(-1), "Should return null for negative index");
+            Assert.IsNull(rules.GetCardFromFreeCell(4), "Should return null for index beyond count");
+            Assert.IsNull(rules.RemoveCardFromFreeCell(-1), "Should return null when removing from negative index");
+            Assert.IsNull(rules.RemoveCardFromFreeCell(4), "Should return null when removing from index beyond count");
         }
     }
 }

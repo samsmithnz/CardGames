@@ -25,6 +25,11 @@ namespace CardGames.Core
         public List<List<CardDto>> TableauColumns { get; set; } = new List<List<CardDto>>();
 
         /// <summary>
+        /// Free cells for temporary card storage (used in games like Freecell)
+        /// </summary>
+        public List<CardDto> FreeCells { get; set; } = new List<CardDto>();
+
+        /// <summary>
         /// Optional: UI face-up flags for each tableau column (parallel to TableauColumns).
         /// Each inner list should have the same length as the corresponding TableauColumns entry.
         /// </summary>
