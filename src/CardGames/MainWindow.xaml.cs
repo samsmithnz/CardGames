@@ -281,6 +281,18 @@ namespace CardGames
         /// </summary>
         private void StartNewGame()
         {
+            StartNewGame("Klondike Solitaire");
+        }
+
+        /// <summary>
+        /// Start a new game of Solitaire with the specified game type
+        /// </summary>
+        /// <param name="gameName">Name of the game variant to play</param>
+        private void StartNewGame(string gameName)
+        {
+            // Reinitialize game rules for the selected game type
+            solitaireRules = new SolitaireRules(gameName);
+            
             // Clear all existing cards from UI
             ClearAllCards();
             
@@ -294,7 +306,7 @@ namespace CardGames
             // Display dealt cards on the table
             DisplayGame();
             
-            StatusLabel.Content = "New game started! Drag cards to move them.";
+            StatusLabel.Content = $"New {gameName} game started! Drag cards to move them.";
         }
 
         /// <summary>
@@ -330,7 +342,16 @@ namespace CardGames
         /// </summary>
         private void NewGameButton_Click(object sender, RoutedEventArgs e)
         {
-            StartNewGame();
+            // Show game selection dialog
+            GameSelectionWindow gameSelectionWindow = new GameSelectionWindow();
+            gameSelectionWindow.Owner = this;
+            gameSelectionWindow.ShowDialog();
+            
+            // Start new game with selected type if user confirmed
+            if (gameSelectionWindow.DialogResult)
+            {
+                StartNewGame(gameSelectionWindow.SelectedGameName);
+            }
         }
         
         /// <summary>
