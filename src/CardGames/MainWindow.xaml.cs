@@ -1317,9 +1317,8 @@ namespace CardGames
                 }
                 else
                 {
-                    // Fallback: restart current game type so the button always does something visible
-                    DebugLog("NewGameButton_Click: dialog cancelled or no selection -> restarting current game");
-                    StartNewGame(currentGameType);
+                    DebugLog("NewGameButton_Click: dialog cancelled -> no action taken");
+                    // Do nothing when cancelled - don't restart the current game
                 }
             }
             catch (Exception ex)
