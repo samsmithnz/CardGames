@@ -811,6 +811,13 @@ namespace CardGames
             DebugLog($"ValidateMoveDetailed: source={DescribeControl(dragSourceControl)}, target={DescribeControl(targetControl)}, card={DescribeCard(card)}");
             DebugLog($"  targetControl.Card = {DescribeCard(targetControl.Card)}");
             
+            // Reject moves when source control is null to prevent card duplication
+            if (dragSourceControl == null)
+            {
+                DebugLog("  -> REJECTED: dragSourceControl is null - cannot track source for safe card removal");
+                return "Invalid move: source control lost";
+            }
+            
             // Check if moving to free cell
             if (freeCellControls.Contains(targetControl))
             {
@@ -1277,6 +1284,14 @@ namespace CardGames
         private void ExecuteMove(CardUserControl sourceControl, CardUserControl targetControl, Card card)
         {
             DebugLog($"ExecuteMove: {DescribeCard(card)} from {DescribeControl(sourceControl)} to {DescribeControl(targetControl)}");
+            
+            // Safety check: refuse to execute moves when source control is null to prevent card duplication
+            if (sourceControl == null)
+            {
+                DebugLog("  -> ABORTED: sourceControl is null - cannot safely remove card from source");
+                return;
+            }
+            
             List<Card> sequence = GetCardSequenceToMove(sourceControl, card);
             // Free cell
             if (freeCellControls.Contains(targetControl))
