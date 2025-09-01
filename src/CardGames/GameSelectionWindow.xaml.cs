@@ -13,9 +13,9 @@ namespace CardGames
         public string SelectedGameName { get; private set; }
 
         /// <summary>
-        /// Gets whether the user confirmed their selection
+        /// Indicates whether the user confirmed their selection (separate from WPF's DialogResult)
         /// </summary>
-        public bool DialogResult { get; private set; }
+        public bool UserConfirmed { get; private set; }
 
         /// <summary>
         /// Initializes a new instance of the GameSelectionWindow
@@ -24,7 +24,7 @@ namespace CardGames
         {
             InitializeComponent();
             SelectedGameName = "Klondike Solitaire"; // Default selection
-            DialogResult = false;
+            UserConfirmed = false;
         }
 
         /// <summary>
@@ -41,6 +41,8 @@ namespace CardGames
                 SelectedGameName = "Freecell";
             }
 
+            UserConfirmed = true;
+            // Set the WPF Window.DialogResult so ShowDialog() returns true
             DialogResult = true;
             Close();
         }
@@ -50,7 +52,8 @@ namespace CardGames
         /// </summary>
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
+            UserConfirmed = false;
+            DialogResult = false; // Ensure ShowDialog returns false
             Close();
         }
     }
