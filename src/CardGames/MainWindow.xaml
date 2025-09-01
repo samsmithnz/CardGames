@@ -45,37 +45,37 @@
                    FontSize="10" HorizontalAlignment="Center" Width="90"/>
 
             <!-- Free Cells (top-left area) - Freecell only -->
-            <Border x:Name="FreeCellBorder1" Canvas.Left="20" Canvas.Top="20" Width="70" Height="100" 
+            <Border x:Name="FreeCellBorder1" Canvas.Left="20" Canvas.Top="20" Width="90" Height="130" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5" Visibility="Collapsed">
                 <local:CardUserControl x:Name="FreeCell1" 
                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-            <Label x:Name="FreeCellLabel1" Canvas.Left="20" Canvas.Top="125" Content="Free 1" Foreground="White" 
-                   FontSize="9" HorizontalAlignment="Center" Width="70" Visibility="Collapsed"/>
+            <Label x:Name="FreeCellLabel1" Canvas.Left="20" Canvas.Top="155" Content="Free 1" Foreground="White" 
+                   FontSize="9" HorizontalAlignment="Center" Width="90" Visibility="Collapsed"/>
 
-            <Border x:Name="FreeCellBorder2" Canvas.Left="100" Canvas.Top="20" Width="70" Height="100" 
+            <Border x:Name="FreeCellBorder2" Canvas.Left="120" Canvas.Top="20" Width="90" Height="130" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5" Visibility="Collapsed">
                 <local:CardUserControl x:Name="FreeCell2" 
                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-            <Label x:Name="FreeCellLabel2" Canvas.Left="100" Canvas.Top="125" Content="Free 2" Foreground="White" 
-                   FontSize="9" HorizontalAlignment="Center" Width="70" Visibility="Collapsed"/>
+            <Label x:Name="FreeCellLabel2" Canvas.Left="120" Canvas.Top="155" Content="Free 2" Foreground="White" 
+                   FontSize="9" HorizontalAlignment="Center" Width="90" Visibility="Collapsed"/>
 
-            <Border x:Name="FreeCellBorder3" Canvas.Left="180" Canvas.Top="20" Width="70" Height="100" 
+            <Border x:Name="FreeCellBorder3" Canvas.Left="220" Canvas.Top="20" Width="90" Height="130" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5" Visibility="Collapsed">
                 <local:CardUserControl x:Name="FreeCell3" 
                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-            <Label x:Name="FreeCellLabel3" Canvas.Left="180" Canvas.Top="125" Content="Free 3" Foreground="White" 
-                   FontSize="9" HorizontalAlignment="Center" Width="70" Visibility="Collapsed"/>
+            <Label x:Name="FreeCellLabel3" Canvas.Left="220" Canvas.Top="155" Content="Free 3" Foreground="White" 
+                   FontSize="9" HorizontalAlignment="Center" Width="90" Visibility="Collapsed"/>
 
-            <Border x:Name="FreeCellBorder4" Canvas.Left="260" Canvas.Top="20" Width="70" Height="100" 
+            <Border x:Name="FreeCellBorder4" Canvas.Left="320" Canvas.Top="20" Width="90" Height="130" 
                     BorderBrush="White" BorderThickness="1" Background="Transparent" CornerRadius="5" Visibility="Collapsed">
                 <local:CardUserControl x:Name="FreeCell4" 
                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Border>
-            <Label x:Name="FreeCellLabel4" Canvas.Left="260" Canvas.Top="125" Content="Free 4" Foreground="White" 
-                   FontSize="9" HorizontalAlignment="Center" Width="70" Visibility="Collapsed"/>
+            <Label x:Name="FreeCellLabel4" Canvas.Left="320" Canvas.Top="155" Content="Free 4" Foreground="White" 
+                   FontSize="9" HorizontalAlignment="Center" Width="90" Visibility="Collapsed"/>
             
             <!-- Foundation Piles (top-right area, 4 horizontal) -->
             <!-- Order must match Card.CardSuite enum: Heart(0), Club(1), Diamond(2), Spade(3) -->
