@@ -1098,9 +1098,12 @@ namespace CardGames
                 }
                 return;
             }
-            
+
             // For other sources, just clear the UI control
-            sourceControl.Card = null;
+            if (sourceControl != null)
+            {
+                sourceControl.Card = null;
+            }
         }
 
         /// <summary>
