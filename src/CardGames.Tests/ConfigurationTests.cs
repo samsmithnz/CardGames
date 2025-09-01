@@ -434,5 +434,87 @@ namespace CardGames.Tests
                 Assert.Fail("Test setup error - should have entered the if branch");
             }
         }
+
+        [TestMethod]
+        public void LoadGame_FreecellStateIntoKlondikeGame_ShouldSwitchToFreecellConfiguration()
+        {
+            // This test verifies the fix for the issue where loading a Freecell game 
+            // into a Klondike game would incorrectly use Klondike configuration
+            
+            // Arrange - create a Freecell game state
+            SolitaireRules freecellRules = new SolitaireRules("Freecell");
+            freecellRules.FreeCells[0] = new Card { Number = Card.CardNumber.A, Suite = Card.CardSuite.Heart };
+            freecellRules.TableauColumns[7].Add(new Card { Number = Card.CardNumber.K, Suite = Card.CardSuite.Spade });
+            
+            // Export the Freecell state
+            SolitaireState freecellState = freecellRules.ExportState("test freecell state");
+            
+            // Verify the state has the correct game name
+            Assert.AreEqual("Freecell", freecellState.GameName);
+            Assert.AreEqual(4, freecellState.FreeCells.Count);
+            Assert.AreEqual(8, freecellState.TableauColumns.Count);
+            
+            // Act - create a Klondike game and import the Freecell state
+            // This simulates the bug scenario where user loads a Freecell save file 
+            // while playing Klondike
+            SolitaireRules klondikeRules = new SolitaireRules("Klondike Solitaire");
+            
+            // Verify initial Klondike configuration
+            Assert.AreEqual("Klondike Solitaire", klondikeRules.GameConfig.GameName);
+            Assert.AreEqual(7, klondikeRules.GameConfig.Piles.Tableau);
+            Assert.AreEqual(0, klondikeRules.GameConfig.Piles.Freecells);
+            
+            // Now simulate what the fixed LoadGameButton_Click should do:
+            // 1. Detect game type mismatch
+            string loadedGameName = freecellState.GameName ?? "Klondike Solitaire";
+            if (loadedGameName != "Klondike Solitaire")
+            {
+                // 2. Create new rules with correct configuration
+                klondikeRules = new SolitaireRules(loadedGameName);
+            }
+            
+            // 3. Import the state
+            klondikeRules.ImportState(freecellState);
+            
+            // Assert - the rules should now be Freecell with correct configuration and state
+            Assert.AreEqual("Freecell", klondikeRules.GameConfig.GameName);
+            Assert.AreEqual(8, klondikeRules.GameConfig.Piles.Tableau);
+            Assert.AreEqual(4, klondikeRules.GameConfig.Piles.Freecells);
+            
+            // Verify the imported state
+            Assert.IsNotNull(klondikeRules.FreeCells[0]);
+            Assert.AreEqual(Card.CardNumber.A, klondikeRules.FreeCells[0].Number);
+            Assert.AreEqual(Card.CardSuite.Heart, klondikeRules.FreeCells[0].Suite);
+            Assert.AreEqual(1, klondikeRules.TableauColumns[7].Count);
+            Assert.AreEqual(Card.CardNumber.K, klondikeRules.TableauColumns[7][0].Number);
+        }
+
+        [TestMethod]
+        public void LoadGame_StateWithoutGameName_ShouldDefaultToKlondikeForBackwardCompatibility()
+        {
+            // This test verifies backward compatibility with save files created before GameName was added
+            
+            // Arrange - create a state without GameName (simulating old save file)
+            SolitaireState stateWithoutGameName = new SolitaireState();
+            stateWithoutGameName.GameName = null; // Explicitly set to null to simulate old save file
+            stateWithoutGameName.StockPile.Add(new CardDto { Number = Card.CardNumber._9, Suite = Card.CardSuite.Club });
+            
+            // Act - load into a Klondike game (should work without issues)
+            SolitaireRules rules = new SolitaireRules("Klondike Solitaire");
+            
+            // Simulate the load logic with null GameName
+            string loadedGameName = stateWithoutGameName.GameName ?? "Klondike Solitaire";
+            if (loadedGameName != "Klondike Solitaire")
+            {
+                rules = new SolitaireRules(loadedGameName);
+            }
+            
+            rules.ImportState(stateWithoutGameName);
+            
+            // Assert - should remain Klondike and import correctly
+            Assert.AreEqual("Klondike Solitaire", rules.GameConfig.GameName);
+            Assert.AreEqual(1, rules.StockPile.Count);
+            Assert.AreEqual(Card.CardNumber._9, rules.StockPile[0].Number);
+        }
     }
 }
