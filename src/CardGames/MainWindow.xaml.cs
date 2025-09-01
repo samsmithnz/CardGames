@@ -665,14 +665,41 @@ namespace CardGames
             {
                 List<Card> sourceColumn = solitaireRules.TableauColumns[sourceColumnIndex];
                 
+                // Validate that we can remove all cards before removing any
+                if (!CanRemoveCardSequenceFromTableau(sourceColumn, cardsToRemove))
+                {
+                    DebugLog($"ERROR: Cannot remove card sequence from column {sourceColumnIndex}. Operation aborted to prevent duplication.");
+                    return;
+                }
+                
                 // Remove the cards from the end of the column (top-down) to maintain order
+                int cardsRemoved = 0;
                 for (int i = cardsToRemove.Count - 1; i >= 0; i--)
                 {
-                    if (sourceColumn.Count > 0 && sourceColumn[sourceColumn.Count - 1] == cardsToRemove[i])
+                    if (sourceColumn.Count > 0 && AreCardsEqual(sourceColumn[sourceColumn.Count - 1], cardsToRemove[i]))
                     {
                         sourceColumn.RemoveAt(sourceColumn.Count - 1);
+                        cardsRemoved++;
+                    }
+                    else
+                    {
+                        // This should never happen due to validation above, but if it does, 
+                        // we need to restore the cards to prevent duplication
+                        DebugLog($"ERROR: Card removal validation failed during operation. Expected {DescribeCard(cardsToRemove[i])}, found {(sourceColumn.Count > 0 ? DescribeCard(sourceColumn[sourceColumn.Count - 1]) : "empty column")}");
+                        
+                        // Restore any cards that were already removed
+                        for (int j = cardsToRemove.Count - 1; j > i; j--)
+                        {
+                            sourceColumn.Add(cardsToRemove[j]);
+                        }
+                        
+                        // Abort the operation
+                        RefreshTableauColumn(sourceColumnIndex);
+                        return;
                     }
                 }
+                
+                DebugLog($"Successfully removed {cardsRemoved} cards from column {sourceColumnIndex}");
                 
                 // Refresh the source column display
                 RefreshTableauColumn(sourceColumnIndex);
@@ -693,6 +720,61 @@ namespace CardGames
             
             // For non-tableau sources, fall back to single card removal
             RemoveCardFromSource(sourceControl, cardsToRemove[0]);
+        }
+
+        /// <summary>
+        /// Validates that a sequence of cards can be removed from the specified tableau column
+        /// </summary>
+        /// <param name="sourceColumn">The source tableau column</param>
+        /// <param name="cardsToRemove">The cards to remove</param>
+        /// <returns>True if all cards can be removed, false otherwise</returns>
+        private bool CanRemoveCardSequenceFromTableau(List<Card> sourceColumn, List<Card> cardsToRemove)
+        {
+            if (cardsToRemove == null || cardsToRemove.Count == 0)
+            {
+                return true;
+            }
+            
+            if (sourceColumn.Count < cardsToRemove.Count)
+            {
+                DebugLog($"Cannot remove {cardsToRemove.Count} cards from column with only {sourceColumn.Count} cards");
+                return false;
+            }
+            
+            // Check that the cards to remove match the top cards in the column in reverse order
+            for (int i = 0; i < cardsToRemove.Count; i++)
+            {
+                int columnIndex = sourceColumn.Count - 1 - i;
+                Card expectedCard = cardsToRemove[cardsToRemove.Count - 1 - i];
+                Card actualCard = sourceColumn[columnIndex];
+                
+                if (!AreCardsEqual(actualCard, expectedCard))
+                {
+                    DebugLog($"Card mismatch at position {i}: expected {DescribeCard(expectedCard)}, found {DescribeCard(actualCard)}");
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        /// <summary>
+        /// Safely compares two cards for equality, handling null cases
+        /// </summary>
+        /// <param name="card1">First card</param>
+        /// <param name="card2">Second card</param>
+        /// <returns>True if cards are equal, false otherwise</returns>
+        private bool AreCardsEqual(Card card1, Card card2)
+        {
+            if (card1 == null && card2 == null)
+            {
+                return true;
+            }
+            if (card1 == null || card2 == null)
+            {
+                return false;
+            }
+            return card1.Number == card2.Number && card1.Suite == card2.Suite;
         }
 
         /// <summary>
