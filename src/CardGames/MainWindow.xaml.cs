@@ -183,18 +183,6 @@ namespace CardGames
             deck = new Deck();
             solitaireRules = new SolitaireRules(currentGameType);
 
-            // Remove all children from each tableau canvas to prevent leftover controls
-            if (tableauCanvases != null)
-            {
-                foreach (Canvas canvas in tableauCanvases)
-                {
-                    if (canvas != null)
-                    {
-                        canvas.Children.Clear();
-                    }
-                }
-            }
-
             // Initialize control collections
             foundationControls = new List<CardUserControl> { Foundation1, Foundation2, Foundation3, Foundation4 };
             freeCellControls = new List<CardUserControl> { FreeCell1, FreeCell2, FreeCell3, FreeCell4 };
@@ -226,6 +214,16 @@ namespace CardGames
             {
                 tableauCanvases.Add(TableauColumn8);
             }
+
+            // Remove all children from each tableau canvas to prevent leftover controls
+            foreach (Canvas canvas in tableauCanvases)
+            {
+                if (canvas != null)
+                {
+                    canvas.Children.Clear();
+                }
+            }
+
             tableauFaceUpStates = new List<List<bool>>();
             int numColumns = currentGameType == "Freecell" ? 8 : 7;
             for (int i = 0; i < numColumns; i++)
@@ -1603,7 +1601,7 @@ namespace CardGames
                 // If there are still cards in the column, make the new top card face-up
                 if (sourceColumn.Count > 0)
                 {
-                    // Update the face-up state tracking - newly exposed card becomes face-up
+                    // Update the face-up state tracking - newly exposed card should be face-up
                     EnsureFaceUpStateCapacity(sourceColumnIndex, sourceColumn.Count);
                     tableauFaceUpStates[sourceColumnIndex][sourceColumn.Count - 1] = true;
                     
