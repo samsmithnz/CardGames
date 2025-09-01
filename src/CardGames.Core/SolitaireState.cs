@@ -26,14 +26,21 @@ namespace CardGames.Core
 
         /// <summary>
         /// Free cells for temporary card storage (used in games like Freecell)
+        /// Null values represent empty free cells
         /// </summary>
-        public List<CardDto> FreeCells { get; set; } = new List<CardDto>();
+        public List<CardDto?> FreeCells { get; set; } = new List<CardDto?>();
 
         /// <summary>
         /// Optional: UI face-up flags for each tableau column (parallel to TableauColumns).
         /// Each inner list should have the same length as the corresponding TableauColumns entry.
         /// </summary>
         public List<List<bool>> TableauFaceUpStates { get; set; } = new List<List<bool>>();
+
+        /// <summary>
+        /// The name of the game configuration that was used when this state was saved.
+        /// This allows the loader to set up the correct game board configuration.
+        /// </summary>
+        public string? GameName { get; set; }
 
         public string? Note { get; set; }
 
@@ -108,7 +115,7 @@ namespace CardGames.Core
                 state.FoundationPiles.Add(pile);
             }
 
-            // Tableau (7 columns)
+            // Tableau columns
             for (int col = 0; col < rules.TableauColumns.Count; col++)
             {
                 List<CardDto> column = new List<CardDto>();
@@ -120,6 +127,22 @@ namespace CardGames.Core
                 state.TableauFaceUpStates.Add(new List<bool>()); // UI will populate if needed
             }
 
+            // Free cells
+            for (int i = 0; i < rules.FreeCells.Count; i++)
+            {
+                Card c = rules.FreeCells[i];
+                if (c != null)
+                {
+                    state.FreeCells.Add(c.ToDto());
+                }
+                else
+                {
+                    state.FreeCells.Add(null);
+                }
+            }
+
+            // Store the game configuration name for proper loading
+            state.GameName = rules.GameConfig?.GameName;
             state.Note = note;
             return state;
         }
@@ -144,6 +167,10 @@ namespace CardGames.Core
             for (int col = 0; col < rules.TableauColumns.Count; col++)
             {
                 rules.TableauColumns[col].Clear();
+            }
+            for (int i = 0; i < rules.FreeCells.Count; i++)
+            {
+                rules.FreeCells[i] = null;
             }
 
             // Load stock
@@ -173,6 +200,20 @@ namespace CardGames.Core
                 foreach (CardDto dto in state.TableauColumns[col])
                 {
                     rules.TableauColumns[col].Add(dto.FromDto());
+                }
+            }
+
+            // Load free cells
+            for (int i = 0; i < state.FreeCells.Count && i < rules.FreeCells.Count; i++)
+            {
+                CardDto? dto = state.FreeCells[i];
+                if (dto != null)
+                {
+                    rules.FreeCells[i] = dto.FromDto();
+                }
+                else
+                {
+                    rules.FreeCells[i] = null;
                 }
             }
         }
