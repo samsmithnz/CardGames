@@ -182,13 +182,22 @@ namespace CardGames
         {
             deck = new Deck();
             solitaireRules = new SolitaireRules(currentGameType);
-            
+
+            // Remove all children from each tableau canvas to prevent leftover controls
+            if (tableauCanvases != null)
+            {
+                foreach (Canvas canvas in tableauCanvases)
+                {
+                    if (canvas != null)
+                    {
+                        canvas.Children.Clear();
+                    }
+                }
+            }
+
             // Initialize control collections
             foundationControls = new List<CardUserControl> { Foundation1, Foundation2, Foundation3, Foundation4 };
-            
-            // Initialize free cell controls
             freeCellControls = new List<CardUserControl> { FreeCell1, FreeCell2, FreeCell3, FreeCell4 };
-            
             tableauControls = new List<List<CardUserControl>>
             {
                 new List<CardUserControl> { Tableau1_1 },
@@ -199,14 +208,10 @@ namespace CardGames
                 new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
                 new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 }
             };
-
-            // Add 8th column for Freecell if needed
             if (currentGameType == "Freecell")
             {
                 tableauControls.Add(new List<CardUserControl> { Tableau8_1, Tableau8_2, Tableau8_3, Tableau8_4, Tableau8_5, Tableau8_6, Tableau8_7 });
             }
-
-            // Map the Canvas for each tableau column for dynamic UI growth
             tableauCanvases = new List<Canvas>
             {
                 TableauColumn1,
@@ -217,26 +222,20 @@ namespace CardGames
                 TableauColumn6,
                 TableauColumn7
             };
-            
-            // Add 8th canvas for Freecell if needed
             if (currentGameType == "Freecell")
             {
                 tableauCanvases.Add(TableauColumn8);
             }
-            
-            // Initialize face-up state tracking for tableau columns
             tableauFaceUpStates = new List<List<bool>>();
             int numColumns = currentGameType == "Freecell" ? 8 : 7;
             for (int i = 0; i < numColumns; i++)
             {
                 tableauFaceUpStates.Add(new List<bool>());
-                // Initialize with enough slots for maximum possible cards initially (based on UI controls)
                 for (int j = 0; j < tableauControls[i].Count; j++)
                 {
                     tableauFaceUpStates[i].Add(false);
                 }
             }
-            
             SetupCardEvents();
             SetupUIVisibility();
         }
