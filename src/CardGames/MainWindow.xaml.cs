@@ -1421,8 +1421,8 @@ namespace CardGames
                 }
                 else
                 {
-                    DebugLog("NewGameButton_Click: dialog cancelled -> restarting current game");
-                    StartNewGame(currentGameType);
+                    DebugLog("NewGameButton_Click: dialog cancelled -> no action taken");
+                    // Do nothing when cancelled - don't restart the current game
                 }
             }
             catch (System.Exception ex)
