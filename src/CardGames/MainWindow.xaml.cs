@@ -523,6 +523,18 @@ namespace CardGames
                     string json = File.ReadAllText(dlg.FileName);
                     SolitaireState state = SolitaireState.FromJson(json);
 
+                    // Check if the loaded game is a different type than the current game
+                    string loadedGameName = state.GameName ?? "Klondike Solitaire"; // Default for backward compatibility
+                    if (currentGameType != loadedGameName)
+                    {
+                        DebugLog($"LoadGame: Switching from '{currentGameType}' to '{loadedGameName}'");
+                        currentGameType = loadedGameName;
+                        InitializeGame(); // Rebuild UI for the new game type
+                        // Create new rules with the correct configuration
+                        solitaireRules = new SolitaireRules(currentGameType);
+                        SetupUIVisibility(); // Update UI visibility for the new game type
+                    }
+
                     // Replace rules state
                     solitaireRules.ImportState(state);
 
@@ -552,6 +564,13 @@ namespace CardGames
                     // Redraw UI
                     ClearAllCards();
                     DisplayGame();
+                    
+                    // Update Freecell-specific UI if needed
+                    if (currentGameType == "Freecell")
+                    {
+                        UpdateFreeCells();
+                        UpdateFreecellStatus();
+                    }
 
                     StatusLabel.Content = $"Game loaded from {System.IO.Path.GetFileName(dlg.FileName)}";
                     DebugLog($"Loaded game state <- {dlg.FileName}");
