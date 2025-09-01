@@ -604,7 +604,7 @@ namespace CardGames
             int draggedCardIndex = -1;
             for (int i = 0; i < sourceColumn.Count; i++)
             {
-                if (sourceColumn[i] == draggedCard)
+                if (AreCardsEqual(sourceColumn[i], draggedCard))
                 {
                     draggedCardIndex = i;
                     break;
