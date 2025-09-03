@@ -176,16 +176,53 @@ namespace CardGames
         }
 
         /// <summary>
-        /// Initialize the game components and layout
+        /// Initialize the game components and layout (refactored for per-variant setup)
         /// </summary>
         private void InitializeGame()
         {
+            DebugLog($"InitializeGame: begin for '{currentGameType}'");
+            // Core objects
             deck = new Deck();
             solitaireRules = new SolitaireRules(currentGameType);
-            
-            // Initialize control collections (base XAML controls only)
+
+            InitializeCommonCollections();
+            if (IsFreecellGame())
+            {
+                InitializeFreecellLayout();
+            }
+            else
+            {
+                InitializeKlondikeLayout();
+            }
+            ResetTableauCanvasChildren();
+            InitializeEmptyFaceUpStateTracking();
+            SetupCardEvents();
+            SetupUIVisibility();
+            DebugLog("InitializeGame: completed variant-specific initialization");
+        }
+
+        /// <summary>
+        /// Returns true if the current game type is Freecell
+        /// </summary>
+        private bool IsFreecellGame()
+        {
+            return string.Equals(currentGameType, "Freecell", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Initialize collections shared by all variants (foundation & free cell references)
+        /// </summary>
+        private void InitializeCommonCollections()
+        {
             foundationControls = new List<CardUserControl> { Foundation1, Foundation2, Foundation3, Foundation4 };
-            freeCellControls = new List<CardUserControl> { FreeCell1, FreeCell2, FreeCell3, FreeCell4 };
+            freeCellControls = new List<CardUserControl> { FreeCell1, FreeCell2, FreeCell3, FreeCell4 }; // Always tracked (visibility toggled later)
+        }
+
+        /// <summary>
+        /// Configure tableau controls & canvases for Klondike (7 columns)
+        /// </summary>
+        private void InitializeKlondikeLayout()
+        {
             tableauControls = new List<List<CardUserControl>>
             {
                 new List<CardUserControl> { Tableau1_1 },
@@ -196,10 +233,6 @@ namespace CardGames
                 new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
                 new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 }
             };
-            if (currentGameType == "Freecell")
-            {
-                tableauControls.Add(new List<CardUserControl> { Tableau8_1, Tableau8_2, Tableau8_3, Tableau8_4, Tableau8_5, Tableau8_6, Tableau8_7 });
-            }
             tableauCanvases = new List<Canvas>
             {
                 TableauColumn1,
@@ -210,23 +243,60 @@ namespace CardGames
                 TableauColumn6,
                 TableauColumn7
             };
-            if (currentGameType == "Freecell")
-            {
-                tableauCanvases.Add(TableauColumn8);
-            }
+            DebugLog("InitializeKlondikeLayout: 7 tableau columns configured");
+        }
 
-            // Remove all children (dynamic controls from previous games) then reattach base controls only
+        /// <summary>
+        /// Configure tableau controls & canvases for Freecell (8 columns)
+        /// </summary>
+        private void InitializeFreecellLayout()
+        {
+            tableauControls = new List<List<CardUserControl>>
+            {
+                new List<CardUserControl> { Tableau1_1 },
+                new List<CardUserControl> { Tableau2_1, Tableau2_2 },
+                new List<CardUserControl> { Tableau3_1, Tableau3_2, Tableau3_3 },
+                new List<CardUserControl> { Tableau4_1, Tableau4_2, Tableau4_3, Tableau4_4 },
+                new List<CardUserControl> { Tableau5_1, Tableau5_2, Tableau5_3, Tableau5_4, Tableau5_5 },
+                new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
+                new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 },
+                new List<CardUserControl> { Tableau8_1, Tableau8_2, Tableau8_3, Tableau8_4, Tableau8_5, Tableau8_6, Tableau8_7 }
+            };
+            tableauCanvases = new List<Canvas>
+            {
+                TableauColumn1,
+                TableauColumn2,
+                TableauColumn3,
+                TableauColumn4,
+                TableauColumn5,
+                TableauColumn6,
+                TableauColumn7,
+                TableauColumn8
+            };
+            DebugLog("InitializeFreecellLayout: 8 tableau columns configured");
+        }
+
+        /// <summary>
+        /// Clear all tableau canvases and reattach their base XAML CardUserControl children
+        /// </summary>
+        private void ResetTableauCanvasChildren()
+        {
             for (int i = 0; i < tableauCanvases.Count; i++)
             {
                 Canvas canvas = tableauCanvases[i];
                 canvas.Children.Clear();
-                foreach (CardUserControl baseCtrl in tableauControls[i])
+                foreach (CardUserControl ctrl in tableauControls[i])
                 {
-                    canvas.Children.Add(baseCtrl);
+                    canvas.Children.Add(ctrl);
                 }
             }
+        }
 
-            // Reset face-up state tracking
+        /// <summary>
+        /// Initialize (empty) face-up state tracking lists sized to current tableau control structure
+        /// </summary>
+        private void InitializeEmptyFaceUpStateTracking()
+        {
             tableauFaceUpStates = new List<List<bool>>();
             for (int i = 0; i < tableauControls.Count; i++)
             {
@@ -237,10 +307,6 @@ namespace CardGames
                 }
                 tableauFaceUpStates.Add(list);
             }
-
-            SetupCardEvents();
-            SetupUIVisibility();
-            DebugLog("InitializeGame: UI reinitialized and dynamic tableau controls reset");
         }
 
         /// <summary>
