@@ -176,16 +176,60 @@ namespace CardGames
         }
 
         /// <summary>
-        /// Initialize the game components and layout
+        /// Initialize the game components and layout (refactored for per-variant setup)
         /// </summary>
         private void InitializeGame()
         {
+            DebugLog($"InitializeGame: begin for '{currentGameType}'");
+            // Core objects
             deck = new Deck();
             solitaireRules = new SolitaireRules(currentGameType);
-            
-            // Initialize control collections (base XAML controls only)
+
+            InitializeCommonCollections();
+            if (IsFreecellGame())
+            {
+                InitializeFreecellLayout();
+            }
+            else
+            {
+                InitializeKlondikeLayout();
+            }
+            ResetTableauCanvasChildren();
+            InitializeEmptyFaceUpStateTracking();
+            if (IsFreecellGame())
+            {
+                SetupCardEventsFreecell();
+            }
+            else
+            {
+                SetupCardEventsKlondike();
+            }
+            SetupUIVisibility();
+            DebugLog("InitializeGame: completed variant-specific initialization");
+        }
+
+        /// <summary>
+        /// Returns true if the current game type is Freecell
+        /// </summary>
+        private bool IsFreecellGame()
+        {
+            return string.Equals(currentGameType, "Freecell", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Initialize collections shared by all variants (foundation & free cell references)
+        /// </summary>
+        private void InitializeCommonCollections()
+        {
             foundationControls = new List<CardUserControl> { Foundation1, Foundation2, Foundation3, Foundation4 };
-            freeCellControls = new List<CardUserControl> { FreeCell1, FreeCell2, FreeCell3, FreeCell4 };
+            freeCellControls = new List<CardUserControl> { FreeCell1, FreeCell2, FreeCell3, FreeCell4 }; // Always tracked (visibility toggled later)
+        }
+
+        /// <summary>
+        /// Configure tableau controls & canvases for Klondike (7 columns)
+        /// </summary>
+        private void InitializeKlondikeLayout()
+        {
             tableauControls = new List<List<CardUserControl>>
             {
                 new List<CardUserControl> { Tableau1_1 },
@@ -196,10 +240,6 @@ namespace CardGames
                 new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
                 new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 }
             };
-            if (currentGameType == "Freecell")
-            {
-                tableauControls.Add(new List<CardUserControl> { Tableau8_1, Tableau8_2, Tableau8_3, Tableau8_4, Tableau8_5, Tableau8_6, Tableau8_7 });
-            }
             tableauCanvases = new List<Canvas>
             {
                 TableauColumn1,
@@ -210,23 +250,60 @@ namespace CardGames
                 TableauColumn6,
                 TableauColumn7
             };
-            if (currentGameType == "Freecell")
-            {
-                tableauCanvases.Add(TableauColumn8);
-            }
+            DebugLog("InitializeKlondikeLayout: 7 tableau columns configured");
+        }
 
-            // Remove all children (dynamic controls from previous games) then reattach base controls only
+        /// <summary>
+        /// Configure tableau controls & canvases for Freecell (8 columns)
+        /// </summary>
+        private void InitializeFreecellLayout()
+        {
+            tableauControls = new List<List<CardUserControl>>
+            {
+                new List<CardUserControl> { Tableau1_1 },
+                new List<CardUserControl> { Tableau2_1, Tableau2_2 },
+                new List<CardUserControl> { Tableau3_1, Tableau3_2, Tableau3_3 },
+                new List<CardUserControl> { Tableau4_1, Tableau4_2, Tableau4_3, Tableau4_4 },
+                new List<CardUserControl> { Tableau5_1, Tableau5_2, Tableau5_3, Tableau5_4, Tableau5_5 },
+                new List<CardUserControl> { Tableau6_1, Tableau6_2, Tableau6_3, Tableau6_4, Tableau6_5, Tableau6_6 },
+                new List<CardUserControl> { Tableau7_1, Tableau7_2, Tableau7_3, Tableau7_4, Tableau7_5, Tableau7_6, Tableau7_7 },
+                new List<CardUserControl> { Tableau8_1, Tableau8_2, Tableau8_3, Tableau8_4, Tableau8_5, Tableau8_6, Tableau8_7 }
+            };
+            tableauCanvases = new List<Canvas>
+            {
+                TableauColumn1,
+                TableauColumn2,
+                TableauColumn3,
+                TableauColumn4,
+                TableauColumn5,
+                TableauColumn6,
+                TableauColumn7,
+                TableauColumn8
+            };
+            DebugLog("InitializeFreecellLayout: 8 tableau columns configured");
+        }
+
+        /// <summary>
+        /// Clear all tableau canvases and reattach their base XAML CardUserControl children
+        /// </summary>
+        private void ResetTableauCanvasChildren()
+        {
             for (int i = 0; i < tableauCanvases.Count; i++)
             {
                 Canvas canvas = tableauCanvases[i];
                 canvas.Children.Clear();
-                foreach (CardUserControl baseCtrl in tableauControls[i])
+                foreach (CardUserControl ctrl in tableauControls[i])
                 {
-                    canvas.Children.Add(baseCtrl);
+                    canvas.Children.Add(ctrl);
                 }
             }
+        }
 
-            // Reset face-up state tracking
+        /// <summary>
+        /// Initialize (empty) face-up state tracking lists sized to current tableau control structure
+        /// </summary>
+        private void InitializeEmptyFaceUpStateTracking()
+        {
             tableauFaceUpStates = new List<List<bool>>();
             for (int i = 0; i < tableauControls.Count; i++)
             {
@@ -237,10 +314,6 @@ namespace CardGames
                 }
                 tableauFaceUpStates.Add(list);
             }
-
-            SetupCardEvents();
-            SetupUIVisibility();
-            DebugLog("InitializeGame: UI reinitialized and dynamic tableau controls reset");
         }
 
         /// <summary>
@@ -276,9 +349,9 @@ namespace CardGames
         }
 
         /// <summary>
-        /// Wire up drag/drop and click events for all card controls
+        /// Wire up drag/drop and click events for Klondike controls (stock, waste, foundations, tableau)
         /// </summary>
-        private void SetupCardEvents()
+        private void SetupCardEventsKlondike()
         {
             // Stock pile
             StockPile.CardDragStarted += OnCardDragStarted;
@@ -288,8 +361,8 @@ namespace CardGames
             StockPile.DebugLog += OnCardDebugLog;
             StockPile.IsStockPile = true;
             StockPile.StockPileClicked += OnStockPileClicked;
-            StockPile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for stock pile
-            StockPile.StackPosition = 0; // Non-stacked cards use position 0
+            StockPile.VisibleHeight = CardVisualConstants.CardHeight;
+            StockPile.StackPosition = 0;
 
             // Waste pile
             WastePile.CardDragStarted += OnCardDragStarted;
@@ -297,8 +370,8 @@ namespace CardGames
             WastePile.ValidateDrop += OnValidateDrop;
             WastePile.CardClicked += OnCardClicked;
             WastePile.DebugLog += OnCardDebugLog;
-            WastePile.VisibleHeight = CardVisualConstants.CardHeight; // Full height for waste pile
-            WastePile.StackPosition = 0; // Non-stacked cards use position 0
+            WastePile.VisibleHeight = CardVisualConstants.CardHeight;
+            WastePile.StackPosition = 0;
 
             // Foundations
             foreach (CardUserControl foundation in foundationControls)
@@ -308,20 +381,8 @@ namespace CardGames
                 foundation.ValidateDrop += OnValidateDrop;
                 foundation.CardClicked += OnCardClicked;
                 foundation.DebugLog += OnCardDebugLog;
-                foundation.VisibleHeight = CardVisualConstants.CardHeight; // Full height for foundation piles
-                foundation.StackPosition = 0; // Non-stacked cards use position 0
-            }
-
-            // Free cells (for Freecell)
-            foreach (CardUserControl freeCell in freeCellControls)
-            {
-                freeCell.CardDragStarted += OnCardDragStarted;
-                freeCell.CardDropped += OnCardDropped;
-                freeCell.ValidateDrop += OnValidateDrop;
-                freeCell.CardClicked += OnCardClicked;
-                freeCell.DebugLog += OnCardDebugLog;
-                freeCell.VisibleHeight = CardVisualConstants.CardHeight; // Full height for free cells
-                freeCell.StackPosition = 0; // Non-stacked cards use position 0
+                foundation.VisibleHeight = CardVisualConstants.CardHeight;
+                foundation.StackPosition = 0;
             }
 
             // Tableau columns
@@ -334,72 +395,75 @@ namespace CardGames
                     control.ValidateDrop += OnValidateDrop;
                     control.CardClicked += OnCardClicked;
                     control.DebugLog += OnCardDebugLog;
-                    control.VisibleHeight = CardVisualConstants.CardHeight; // Initialize to full height, will be adjusted during layout
-                    control.StackPosition = 0; // Initialize to 0, will be set during layout
+                    control.VisibleHeight = CardVisualConstants.CardHeight;
+                    control.StackPosition = 0;
                 }
             }
         }
 
         /// <summary>
-        /// Ensures the face-up state list for a column has at least the specified capacity.
-        /// Adds entries initialized to false as needed.
+        /// Wire up drag/drop and click events for Freecell controls (stock, waste, foundations, tableau, free cells)
         /// </summary>
-        private void EnsureFaceUpStateCapacity(int columnIndex, int requiredCount)
+        private void SetupCardEventsFreecell()
         {
-            if (columnIndex < 0 || columnIndex >= tableauFaceUpStates.Count)
+            // Stock pile
+            StockPile.CardDragStarted += OnCardDragStarted;
+            StockPile.CardDropped += OnCardDropped;
+            StockPile.ValidateDrop += OnValidateDrop;
+            StockPile.CardClicked += OnCardClicked;
+            StockPile.DebugLog += OnCardDebugLog;
+            StockPile.IsStockPile = true;
+            StockPile.StockPileClicked += OnStockPileClicked;
+            StockPile.VisibleHeight = CardVisualConstants.CardHeight;
+            StockPile.StackPosition = 0;
+
+            // Waste pile
+            WastePile.CardDragStarted += OnCardDragStarted;
+            WastePile.CardDropped += OnCardDropped;
+            WastePile.ValidateDrop += OnValidateDrop;
+            WastePile.CardClicked += OnCardClicked;
+            WastePile.DebugLog += OnCardDebugLog;
+            WastePile.VisibleHeight = CardVisualConstants.CardHeight;
+            WastePile.StackPosition = 0;
+
+            // Foundations
+            foreach (CardUserControl foundation in foundationControls)
             {
-                return;
+                foundation.CardDragStarted += OnCardDragStarted;
+                foundation.CardDropped += OnCardDropped;
+                foundation.ValidateDrop += OnValidateDrop;
+                foundation.CardClicked += OnCardClicked;
+                foundation.DebugLog += OnCardDebugLog;
+                foundation.VisibleHeight = CardVisualConstants.CardHeight;
+                foundation.StackPosition = 0;
             }
 
-            List<bool> states = tableauFaceUpStates[columnIndex];
-            while (states.Count < requiredCount)
+            // Free cells
+            foreach (CardUserControl freeCell in freeCellControls)
             {
-                states.Add(false);
+                freeCell.CardDragStarted += OnCardDragStarted;
+                freeCell.CardDropped += OnCardDropped;
+                freeCell.ValidateDrop += OnValidateDrop;
+                freeCell.CardClicked += OnCardClicked;
+                freeCell.DebugLog += OnCardDebugLog;
+                freeCell.VisibleHeight = CardVisualConstants.CardHeight;
+                freeCell.StackPosition = 0;
             }
-        }
 
-        /// <summary>
-        /// Start a new game of Solitaire
-        /// </summary>
-        private void StartNewGame()
-        {
-            StartNewGame("Klondike Solitaire");
-        }
-
-        /// <summary>
-        /// Start a new game of Solitaire with the specified game type
-        /// </summary>
-        /// <param name="gameName">Name of the game variant to play</param>
-        private void StartNewGame(string gameName)
-        {
-            bool gameTypeChanged = currentGameType != gameName;
-            if (gameTypeChanged)
+            // Tableau columns
+            foreach (List<CardUserControl> column in tableauControls)
             {
-                currentGameType = gameName;
-                InitializeGame(); // rebuild control collections & wire events only when type changes
+                foreach (CardUserControl control in column)
+                {
+                    control.CardDragStarted += OnCardDragStarted;
+                    control.CardDropped += OnCardDropped;
+                    control.ValidateDrop += OnValidateDrop;
+                    control.CardClicked += OnCardClicked;
+                    control.DebugLog += OnCardDebugLog;
+                    control.VisibleHeight = CardVisualConstants.CardHeight;
+                    control.StackPosition = 0;
+                }
             }
-            DebugLog($"StartNewGame: starting '{gameName}', typeChanged={gameTypeChanged}");
-
-            // Always clear UI/card visuals before dealing
-            ClearAllCards();
-
-            // Fresh deck & rules each new deal
-            deck = new Deck();
-            deck.Shuffle();
-            DebugLog("StartNewGame: Deck shuffled");
-
-            solitaireRules = new SolitaireRules(currentGameType);
-            solitaireRules.DealCards(deck);
-            DebugLog("StartNewGame: Cards dealt");
-
-            InitializeTableauFaceUpStates();
-            DisplayGame();
-            if (currentGameType == "Freecell")
-            {
-                UpdateFreeCells();
-                UpdateFreecellStatus();
-            }
-            StatusLabel.Content = $"New {gameName} game started! Drag cards to move them.";
         }
 
         /// <summary>
@@ -657,33 +721,32 @@ namespace CardGames
             if (sourceColumnIndex >= 0)
             {
                 List<Card> sourceColumn = solitaireRules.TableauColumns[sourceColumnIndex];
-                
                 // Remove the cards from the end of the column (top-down) to maintain order
-                for (int i = cardsToRemove.Count - 1; i >= 0; i--)
+                for (int i = 0; i < cardsToRemove.Count; i++)
                 {
-                    if (sourceColumn.Count > 0 && sourceColumn[sourceColumn.Count - 1] == cardsToRemove[i])
+                    if (sourceColumn.Count > 0)
                     {
                         sourceColumn.RemoveAt(sourceColumn.Count - 1);
+                        if (tableauFaceUpStates[sourceColumnIndex].Count > 0)
+                        {
+                            tableauFaceUpStates[sourceColumnIndex].RemoveAt(tableauFaceUpStates[sourceColumnIndex].Count - 1);
+                        }
                     }
                 }
-                
                 // Refresh the source column display
                 RefreshTableauColumn(sourceColumnIndex);
-                
                 // If there are still cards in the column, make the new top card face-up
                 if (sourceColumn.Count > 0)
                 {
                     // Update the face-up state tracking - newly exposed card becomes face-up
                     EnsureFaceUpStateCapacity(sourceColumnIndex, sourceColumn.Count);
                     tableauFaceUpStates[sourceColumnIndex][sourceColumn.Count - 1] = true;
-                    
                     // The newly exposed card should be face-up
                     CardUserControl newTopControl = tableauControls[sourceColumnIndex][sourceColumn.Count - 1];
                     newTopControl.IsFaceUp = true;
                 }
                 return;
             }
-            
             // For non-tableau sources, fall back to single card removal
             RemoveCardFromSource(sourceControl, cardsToRemove[0]);
         }
@@ -698,13 +761,16 @@ namespace CardGames
             foreach (Card card in cardsToAdd)
             {
                 solitaireRules.TableauColumns[targetColumnIndex].Add(card);
-                
-                // Update face-up state tracking - newly added card should be face-up
                 int newCardPosition = solitaireRules.TableauColumns[targetColumnIndex].Count - 1;
                 EnsureFaceUpStateCapacity(targetColumnIndex, newCardPosition + 1);
                 tableauFaceUpStates[targetColumnIndex][newCardPosition] = true;
             }
-            
+            // Ensure all moved cards are face-up in the destination column
+            int start = solitaireRules.TableauColumns[targetColumnIndex].Count - cardsToAdd.Count;
+            for (int i = start; i < solitaireRules.TableauColumns[targetColumnIndex].Count; i++)
+            {
+                tableauFaceUpStates[targetColumnIndex][i] = true;
+            }
             // Refresh the display for the target column to show proper stacking
             RefreshTableauColumn(targetColumnIndex);
         }
@@ -807,7 +873,7 @@ namespace CardGames
             // Check if moving to other empty spaces (non-tableau)
             if (targetControl.Card == null)
             {
-                DebugLog(" -> Target control has no card, checking fallback logic for empty tableau columns");
+                DebugLog(" -> Target is empty, but not a tableau slot. Rejecting.");
                 // Before rejecting, check if this might be an empty tableau column
                 // that wasn't detected by GetTableauColumnIndex
                 for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
@@ -997,8 +1063,24 @@ namespace CardGames
             {
                 List<Card> cards = solitaireRules.TableauColumns[col];
                 List<bool> states = new List<bool>();
-                for (int i = 0; i < cards.Count; i++) { states.Add(false); }
-                if (cards.Count > 0) { states[cards.Count - 1] = true; }
+                
+                for (int i = 0; i < cards.Count; i++) 
+                { 
+                    // In standard solitaire, all cards start face-down except the last one
+                    // But if we're initializing from a loaded game or after moves, 
+                    // we need to preserve any face-up states
+                    if (i == cards.Count - 1)
+                    {
+                        // Last card is always face-up
+                        states.Add(true); 
+                    }
+                    else
+                    {
+                        // For initial dealing, all other cards are face-down
+                        // But if this is called after moves, we should check if card should be face-up
+                        states.Add(false);
+                    }
+                }
                 tableauFaceUpStates.Add(states);
             }
         }
@@ -1078,6 +1160,10 @@ namespace CardGames
                 }
                 else { foundationControls[i].Card = null; }
             }
+            
+            // Initialize face-up states to match the current card layout
+            InitializeTableauFaceUpStates();
+            
             // Tableau
             for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
             {
@@ -1163,10 +1249,22 @@ namespace CardGames
             if (result == "Valid")
             {
                 ExecuteMove(dragSourceControl, e.TargetControl, e.DroppedCard);
-                if (solitaireRules.IsGameWon()) { StatusLabel.Content = "Congratulations! You won the game!"; }
-                else { StatusLabel.Content = $"Moved {e.DroppedCard.Number} of {e.DroppedCard.Suite}s successfully"; }
+                
+                // Check for win condition after the move
+                if (solitaireRules.IsGameWon()) 
+                { 
+                    StatusLabel.Content = "Congratulations! You won the game!";
+                    MessageBox.Show("Congratulations! You have won the game!", "Game Won!", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else 
+                { 
+                    StatusLabel.Content = $"Moved {e.DroppedCard.Number} of {e.DroppedCard.Suite}s successfully"; 
+                }
             }
-            else { StatusLabel.Content = $"Invalid move: {result}"; }
+            else 
+            { 
+                StatusLabel.Content = $"Invalid move: {result}"; 
+            }
             dragSourceControl = null;
         }
 
@@ -1179,10 +1277,22 @@ namespace CardGames
             if (foundationIndex >= 0)
             {
                 ExecuteMove(src, foundationControls[foundationIndex], clickedCard);
-                if (solitaireRules.IsGameWon()) { StatusLabel.Content = "Congratulations! You won the game!"; }
-                else { StatusLabel.Content = $"Auto-moved {clickedCard.Number} of {clickedCard.Suite}s to foundation"; }
+                
+                // Check for win condition after the move
+                if (solitaireRules.IsGameWon()) 
+                { 
+                    StatusLabel.Content = "Congratulations! You won the game!";
+                    MessageBox.Show("Congratulations! You have won the game!", "Game Won!", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else 
+                { 
+                    StatusLabel.Content = $"Auto-moved {clickedCard.Number} of {clickedCard.Suite}s to foundation"; 
+                }
             }
-            else { StatusLabel.Content = $"{clickedCard.Number} of {clickedCard.Suite}s cannot be moved to foundation"; }
+            else 
+            { 
+                StatusLabel.Content = $"{clickedCard.Number} of {clickedCard.Suite}s cannot be moved to foundation"; 
+            }
         }
 
         private void ExecuteMove(CardUserControl sourceControl, CardUserControl targetControl, Card card)
@@ -1339,6 +1449,34 @@ namespace CardGames
             {
                 ToggleDragDropDebugMode();
                 e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Starts a new game of the specified type.
+        /// </summary>
+        private void StartNewGame(string gameType)
+        {
+            currentGameType = gameType;
+            InitializeGame();
+            solitaireRules.DealCards(deck);
+            DisplayGame();
+            StatusLabel.Content = $"New game started: {gameType}";
+        }
+
+        /// <summary>
+        /// Ensures the tableauFaceUpStates list for a column has at least the required count.
+        /// </summary>
+        private void EnsureFaceUpStateCapacity(int columnIndex, int requiredCount)
+        {
+            if (columnIndex < 0 || columnIndex >= tableauFaceUpStates.Count)
+            {
+                return;
+            }
+            List<bool> states = tableauFaceUpStates[columnIndex];
+            while (states.Count < requiredCount)
+            {
+                states.Add(false);
             }
         }
     }
