@@ -721,33 +721,32 @@ namespace CardGames
             if (sourceColumnIndex >= 0)
             {
                 List<Card> sourceColumn = solitaireRules.TableauColumns[sourceColumnIndex];
-                
                 // Remove the cards from the end of the column (top-down) to maintain order
-                for (int i = cardsToRemove.Count - 1; i >= 0; i--)
+                for (int i = 0; i < cardsToRemove.Count; i++)
                 {
-                    if (sourceColumn.Count > 0 && sourceColumn[sourceColumn.Count - 1] == cardsToRemove[i])
+                    if (sourceColumn.Count > 0)
                     {
                         sourceColumn.RemoveAt(sourceColumn.Count - 1);
+                        if (tableauFaceUpStates[sourceColumnIndex].Count > 0)
+                        {
+                            tableauFaceUpStates[sourceColumnIndex].RemoveAt(tableauFaceUpStates[sourceColumnIndex].Count - 1);
+                        }
                     }
                 }
-                
                 // Refresh the source column display
                 RefreshTableauColumn(sourceColumnIndex);
-                
                 // If there are still cards in the column, make the new top card face-up
                 if (sourceColumn.Count > 0)
                 {
                     // Update the face-up state tracking - newly exposed card becomes face-up
                     EnsureFaceUpStateCapacity(sourceColumnIndex, sourceColumn.Count);
                     tableauFaceUpStates[sourceColumnIndex][sourceColumn.Count - 1] = true;
-                    
                     // The newly exposed card should be face-up
                     CardUserControl newTopControl = tableauControls[sourceColumnIndex][sourceColumn.Count - 1];
                     newTopControl.IsFaceUp = true;
                 }
                 return;
             }
-            
             // For non-tableau sources, fall back to single card removal
             RemoveCardFromSource(sourceControl, cardsToRemove[0]);
         }
@@ -762,13 +761,16 @@ namespace CardGames
             foreach (Card card in cardsToAdd)
             {
                 solitaireRules.TableauColumns[targetColumnIndex].Add(card);
-                
-                // Update face-up state tracking - newly added card should be face-up
                 int newCardPosition = solitaireRules.TableauColumns[targetColumnIndex].Count - 1;
                 EnsureFaceUpStateCapacity(targetColumnIndex, newCardPosition + 1);
                 tableauFaceUpStates[targetColumnIndex][newCardPosition] = true;
             }
-            
+            // Ensure all moved cards are face-up in the destination column
+            int start = solitaireRules.TableauColumns[targetColumnIndex].Count - cardsToAdd.Count;
+            for (int i = start; i < solitaireRules.TableauColumns[targetColumnIndex].Count; i++)
+            {
+                tableauFaceUpStates[targetColumnIndex][i] = true;
+            }
             // Refresh the display for the target column to show proper stacking
             RefreshTableauColumn(targetColumnIndex);
         }
@@ -1061,8 +1063,24 @@ namespace CardGames
             {
                 List<Card> cards = solitaireRules.TableauColumns[col];
                 List<bool> states = new List<bool>();
-                for (int i = 0; i < cards.Count; i++) { states.Add(false); }
-                if (cards.Count > 0) { states[cards.Count - 1] = true; }
+                
+                for (int i = 0; i < cards.Count; i++) 
+                { 
+                    // In standard solitaire, all cards start face-down except the last one
+                    // But if we're initializing from a loaded game or after moves, 
+                    // we need to preserve any face-up states
+                    if (i == cards.Count - 1)
+                    {
+                        // Last card is always face-up
+                        states.Add(true); 
+                    }
+                    else
+                    {
+                        // For initial dealing, all other cards are face-down
+                        // But if this is called after moves, we should check if card should be face-up
+                        states.Add(false);
+                    }
+                }
                 tableauFaceUpStates.Add(states);
             }
         }
@@ -1142,6 +1160,10 @@ namespace CardGames
                 }
                 else { foundationControls[i].Card = null; }
             }
+            
+            // Initialize face-up states to match the current card layout
+            InitializeTableauFaceUpStates();
+            
             // Tableau
             for (int col = 0; col < solitaireRules.TableauColumns.Count; col++)
             {
@@ -1413,7 +1435,7 @@ namespace CardGames
         {
             currentGameType = gameType;
             InitializeGame();
-            ClearAllCards();
+            solitaireRules.DealCards(deck);
             DisplayGame();
             StatusLabel.Content = $"New game started: {gameType}";
         }
