@@ -1249,10 +1249,22 @@ namespace CardGames
             if (result == "Valid")
             {
                 ExecuteMove(dragSourceControl, e.TargetControl, e.DroppedCard);
-                if (solitaireRules.IsGameWon()) { StatusLabel.Content = "Congratulations! You won the game!"; }
-                else { StatusLabel.Content = $"Moved {e.DroppedCard.Number} of {e.DroppedCard.Suite}s successfully"; }
+                
+                // Check for win condition after the move
+                if (solitaireRules.IsGameWon()) 
+                { 
+                    StatusLabel.Content = "Congratulations! You won the game!";
+                    MessageBox.Show("Congratulations! You have won the game!", "Game Won!", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else 
+                { 
+                    StatusLabel.Content = $"Moved {e.DroppedCard.Number} of {e.DroppedCard.Suite}s successfully"; 
+                }
             }
-            else { StatusLabel.Content = $"Invalid move: {result}"; }
+            else 
+            { 
+                StatusLabel.Content = $"Invalid move: {result}"; 
+            }
             dragSourceControl = null;
         }
 
@@ -1265,10 +1277,22 @@ namespace CardGames
             if (foundationIndex >= 0)
             {
                 ExecuteMove(src, foundationControls[foundationIndex], clickedCard);
-                if (solitaireRules.IsGameWon()) { StatusLabel.Content = "Congratulations! You won the game!"; }
-                else { StatusLabel.Content = $"Auto-moved {clickedCard.Number} of {clickedCard.Suite}s to foundation"; }
+                
+                // Check for win condition after the move
+                if (solitaireRules.IsGameWon()) 
+                { 
+                    StatusLabel.Content = "Congratulations! You won the game!";
+                    MessageBox.Show("Congratulations! You have won the game!", "Game Won!", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else 
+                { 
+                    StatusLabel.Content = $"Auto-moved {clickedCard.Number} of {clickedCard.Suite}s to foundation"; 
+                }
             }
-            else { StatusLabel.Content = $"{clickedCard.Number} of {clickedCard.Suite}s cannot be moved to foundation"; }
+            else 
+            { 
+                StatusLabel.Content = $"{clickedCard.Number} of {clickedCard.Suite}s cannot be moved to foundation"; 
+            }
         }
 
         private void ExecuteMove(CardUserControl sourceControl, CardUserControl targetControl, Card card)
