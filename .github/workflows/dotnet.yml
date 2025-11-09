@@ -42,7 +42,7 @@ jobs:
     - name: .NET publish
       run: dotnet publish src\CardGames.Core\CardGames.Core.csproj -c Release -p:Version='${{ steps.gitversion.outputs.MajorMinorPatch }}'
     - name: Upload package back to GitHub
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: drop
         path: src\CardGames.Core\bin\Release\netstandard2.1
@@ -59,7 +59,7 @@ jobs:
         echo "Version: ${{ needs.build.outputs.Version }}" 
         echo "CommitsSinceVersionSource: ${{ needs.build.outputs.CommitsSinceVersionSource }}" 
     - name: Download package artifacts
-      uses: actions/download-artifact@v5
+      uses: actions/download-artifact@v6
     - name: Create Release
       uses: ncipollo/release-action@v1
       if: needs.build.outputs.CommitsSinceVersionSource > 0 #Only create a release if there has been a commit/version change
