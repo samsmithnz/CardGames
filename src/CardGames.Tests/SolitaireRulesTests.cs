@@ -71,7 +71,7 @@ namespace CardGames.Tests
             SolitaireRules rules = new SolitaireRules();
 
             //Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => rules.DealCards(null));
+            Assert.Throws<ArgumentException>(() => rules.DealCards(null));
         }
 
         [TestMethod]

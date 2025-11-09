@@ -277,7 +277,7 @@ namespace CardGames.Tests
         public void SolitaireRules_InvalidGameName_ShouldThrowException()
         {
             // Act & Assert
-            Assert.ThrowsException<ArgumentException>(() => new SolitaireRules("NonExistentGame"));
+            Assert.Throws<ArgumentException>(() => new SolitaireRules("NonExistentGame"));
         }
 
         [TestMethod]
