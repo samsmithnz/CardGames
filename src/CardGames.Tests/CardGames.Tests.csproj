@@ -4,6 +4,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <!-- <UseWPF>true</UseWPF> -->
+    <!-- Suppress MSTest analyzer warnings introduced in MSTest 4.0 -->
+    <NoWarn>$(NoWarn);MSTEST0032;MSTEST0037</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
