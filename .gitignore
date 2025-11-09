@@ -46,6 +46,7 @@ Generated\ Files/
 # NUnit
 *.VisualState.xml
 TestResult.xml
+TestOutput.xml
 nunit-*.xml
 
 # Build Results of an ATL Project
